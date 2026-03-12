@@ -1,0 +1,25 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "tpoll/poll",
+    "version": "1.0.0",
+    "title": "TPoll",
+    "category": "widgets",
+    "icon": "chart-bar",
+    "description": "Add a poll to your content",
+    "keywords": ["poll", "vote", "survey", "quiz", "rating"],
+    "textdomain": "3task-polls",
+    "attributes": {
+        "pollId": {
+            "type": "number",
+            "default": 0
+        }
+    },
+    "supports": {
+        "html": false,
+        "align": ["wide", "full"],
+        "className": true
+    },
+    "editorScript": "file:./index.js",
+    "editorStyle": "file:./editor.css"
+}
