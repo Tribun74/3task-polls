@@ -110,6 +110,10 @@ class TPoll_Poll {
         global $wpdb;
 
         $table = $wpdb->prefix . 'tpoll_polls';
+        if (!self::table_exists($table)) {
+            return null;
+        }
+
         // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom table, table name is safe.
         $row = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM $table WHERE id = %d",
@@ -145,6 +149,9 @@ class TPoll_Poll {
 
         $args = wp_parse_args($args, $defaults);
         $table = $wpdb->prefix . 'tpoll_polls';
+        if (!self::table_exists($table)) {
+            return array();
+        }
 
         $where = array('1=1');
         $values = array();
@@ -201,6 +208,9 @@ class TPoll_Poll {
         global $wpdb;
 
         $table = $wpdb->prefix . 'tpoll_polls';
+        if (!self::table_exists($table)) {
+            return 0;
+        }
 
         $where = array('1=1');
         $values = array();
@@ -227,6 +237,16 @@ class TPoll_Poll {
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom table, no user input.
         return (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table} WHERE 1=1");
+    }
+
+    /**
+     * Check if the custom polls table is available.
+     */
+    private static function table_exists($table) {
+        global $wpdb;
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table availability check before custom-table reads.
+        return $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table)) === $table;
     }
 
     /**

@@ -13,6 +13,7 @@
     const ServerSideRender = wp.serverSideRender;
 
     registerBlockType('tpoll/poll', {
+        apiVersion: 3,
         edit: function(props) {
             const { attributes, setAttributes } = props;
             const { pollId } = attributes;

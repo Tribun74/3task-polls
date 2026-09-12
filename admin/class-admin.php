@@ -459,7 +459,7 @@ class TPoll_Admin {
         wp_enqueue_script(
             'tpoll-admin',
             TPOLL_PLUGIN_URL . 'assets/js/admin.js',
-            array('jquery', 'jquery-ui-sortable'),
+            array('jquery'),
             TPOLL_VERSION,
             true
         );

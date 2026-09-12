@@ -91,7 +91,6 @@ $tpoll_page_title = $tpoll_is_new ? __('Add New Poll', '3task-polls') : __('Edit
                                 foreach ($tpoll_answers as $tpoll_index => $tpoll_answer) :
                                 ?>
                                     <div class="tpoll-answer-row" data-index="<?php echo esc_attr($tpoll_index); ?>">
-                                        <span class="tpoll-answer-handle dashicons dashicons-move"></span>
                                         <input type="text"
                                                name="answers[<?php echo esc_attr($tpoll_index); ?>][text]"
                                                value="<?php echo esc_attr($tpoll_answer->answer_text); ?>"
@@ -307,7 +306,6 @@ $tpoll_page_title = $tpoll_is_new ? __('Add New Poll', '3task-polls') : __('Edit
 
 <script type="text/html" id="tmpl-tpoll-answer-row">
     <div class="tpoll-answer-row" data-index="{{data.index}}">
-        <span class="tpoll-answer-handle dashicons dashicons-move"></span>
         <input type="text"
                name="answers[{{data.index}}][text]"
                value=""

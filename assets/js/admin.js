@@ -93,7 +93,6 @@ var TPollAdmin = {
         } else {
             // Fallback
             var html = '<div class="tpoll-answer-row" data-index="' + count + '">' +
-                '<span class="tpoll-answer-handle dashicons dashicons-move"></span>' +
                 '<input type="text" name="answers[' + count + '][text]" value="" placeholder="Answer ' + (count + 1) + '" class="tpoll-answer-input">' +
                 '<button type="button" class="tpoll-remove-answer button-link-delete" title="Remove">' +
                 '<span class="dashicons dashicons-trash"></span>' +

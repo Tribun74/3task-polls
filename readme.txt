@@ -2,9 +2,9 @@
 Contributors: 3task
 Tags: poll, voting, survey, quiz, rating
 Requires at least: 5.8
-Tested up to: 6.9
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -47,6 +47,13 @@ You can also customize the display per shortcode:
 
 Search for "3task Polls" in the block inserter and select your poll from the dropdown.
 
+= Looking for more? =
+
+3task Polls is fully functional on its own - no locked features, no time limit, no nag screens.
+If you run a lot of polls and want to save time, there is a paid companion with bulk tools,
+scheduling and export. You can read about it on our site: https://www.3task.de/3task-polls-pro/
+
+
 == Installation ==
 
 1. Upload the `3task-polls` folder to `/wp-content/plugins/`
@@ -86,13 +93,18 @@ Yes. 3task Polls uses standard WordPress i18n functions and is fully translation
 
 == Screenshots ==
 
-1. Dashboard with stats overview and quick actions
-2. Poll editor with type selection and answer management
-3. Frontend poll display with default theme
-4. Results view with animated progress bars
-5. Settings page with appearance and voting options
+1. A poll on the front end - readers vote without leaving the page
+2. Dashboard with an overview of every poll and its votes
+3. All polls at a glance, published and drafts side by side
+4. Results with vote counts and percentages per answer
+5. Settings for appearance, voting rules and privacy
 
 == Changelog ==
+
+= 1.0.3 =
+* Performance: removed the unused jQuery UI Sortable dependency from the admin pages
+* Fix: removed a non-functional drag handle from the answer rows
+* Tested up to WordPress 7.1
 
 = 1.0.2 =
 * Fix: text domain corrected to match plugin slug (3task-polls)

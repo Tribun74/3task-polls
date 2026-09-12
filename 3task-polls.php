@@ -1,9 +1,9 @@
 <?php
 /**
  * Plugin Name:       3task Polls – Surveys, Quizzes & Voting
- * Plugin URI:        https://wordpress.org/plugins/3task-polls/
+ * Plugin URI:        https://www.3task.de/3task-polls-pro/
  * Description:       Create polls, surveys, quizzes and voting with 4 poll types. AJAX-based, GDPR-compliant, Gutenberg block included. Lightweight and fully customizable.
- * Version:           1.0.2
+ * Version:           1.0.3
  * Author:            3task
  * Author URI:        https://www.3task.de
  * License:           GPL v2 or later
@@ -12,7 +12,7 @@
  * Domain Path:       /languages
  * Requires at least: 5.8
  * Requires PHP:      7.4
- * Tested up to:      6.9
+ * Tested up to:      7.1
  */
 
 // Prevent direct access
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 
 // Plugin constants
 if ( ! defined( 'TPOLL_VERSION' ) ) {
-	define( 'TPOLL_VERSION', '1.0.2' );
+	define( 'TPOLL_VERSION', '1.0.3' );
 }
 define('TPOLL_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('TPOLL_PLUGIN_URL', plugin_dir_url(__FILE__));
@@ -119,7 +119,7 @@ final class TPoll {
         wp_register_script(
             'tpoll-block-editor',
             TPOLL_PLUGIN_URL . 'blocks/poll-block/index.js',
-            array('wp-blocks', 'wp-element', 'wp-editor', 'wp-components', 'wp-i18n', 'wp-server-side-render'),
+            array('wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-i18n', 'wp-server-side-render'),
             TPOLL_VERSION,
             true
         );
@@ -151,6 +151,7 @@ final class TPoll {
 
         // Register block type
         register_block_type('tpoll/poll', array(
+            'api_version' => 3,
             'editor_script' => 'tpoll-block-editor',
             'editor_style' => 'tpoll-block-editor',
             'render_callback' => array($this, 'render_block'),
