@@ -42,17 +42,17 @@ $tpoll_settings = get_option('tpoll_settings', array());
                         <td>
                             <select name="tpoll_settings[vote_restriction]" id="vote_restriction">
                                 <option value="ip" <?php selected($tpoll_settings['vote_restriction'] ?? 'ip', 'ip'); ?>>
-                                    <?php esc_html_e('By IP Address (GDPR-compliant)', '3task-polls'); ?>
+                                    <?php esc_html_e('One vote per IP address (hashed, no cookie)', '3task-polls'); ?>
                                 </option>
                                 <option value="cookie" <?php selected($tpoll_settings['vote_restriction'] ?? '', 'cookie'); ?>>
-                                    <?php esc_html_e('By Cookie', '3task-polls'); ?>
+                                    <?php esc_html_e('One vote per browser (cookie, easy to bypass)', '3task-polls'); ?>
                                 </option>
                                 <option value="user" <?php selected($tpoll_settings['vote_restriction'] ?? '', 'user'); ?>>
-                                    <?php esc_html_e('By User Account', '3task-polls'); ?>
+                                    <?php esc_html_e('Logged-in users only, one vote per account', '3task-polls'); ?>
                                 </option>
                             </select>
                             <p class="description">
-                                <?php esc_html_e('IP-based voting uses hashed IPs for GDPR compliance.', '3task-polls'); ?>
+                                <?php esc_html_e('Used for new polls. The plain IP address is never stored, only a salted SHA-256 hash.', '3task-polls'); ?>
                             </p>
                         </td>
                     </tr>
@@ -82,7 +82,7 @@ $tpoll_settings = get_option('tpoll_settings', array());
                                        name="tpoll_settings[allow_revote]"
                                        value="1"
                                        <?php checked(!empty($tpoll_settings['allow_revote'])); ?>>
-                                <?php esc_html_e('Allow users to change their vote', '3task-polls'); ?>
+                                <?php esc_html_e('Allow voters to change their vote (default for new polls)', '3task-polls'); ?>
                             </label>
                             <br><br>
                             <label>
@@ -105,6 +105,100 @@ $tpoll_settings = get_option('tpoll_settings', array());
                 </table>
             </div>
 
+            <!-- Feedback below posts -->
+            <div class="tpoll-card">
+                <div class="tpoll-card-header">
+                    <h3 class="tpoll-card-title">
+                        <span class="tpoll-card-title-icon">&#x1F44D;</span>
+                        <?php esc_html_e('Feedback below posts', '3task-polls'); ?>
+                    </h3>
+                </div>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row"><?php esc_html_e('Show below posts', '3task-polls'); ?></th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="tpoll_settings[feedback_enabled]" value="1" <?php checked(!empty($tpoll_settings['feedback_enabled'])); ?>>
+                                <?php esc_html_e('Ask readers below every post and count the answers per post', '3task-polls'); ?>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="feedback_style"><?php esc_html_e('Style', '3task-polls'); ?></label></th>
+                        <td>
+                            <select name="tpoll_settings[feedback_style]" id="feedback_style">
+                                <option value="helpful" <?php selected($tpoll_settings['feedback_style'] ?? 'helpful', 'helpful'); ?>><?php esc_html_e('Was this post helpful? (thumbs up/down)', '3task-polls'); ?></option>
+                                <option value="reactions" <?php selected($tpoll_settings['feedback_style'] ?? 'helpful', 'reactions'); ?>><?php esc_html_e('Reactions (emoji)', '3task-polls'); ?></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="feedback_question"><?php esc_html_e('Question', '3task-polls'); ?></label></th>
+                        <td>
+                            <input type="text" class="regular-text" name="tpoll_settings[feedback_question]" id="feedback_question" value="<?php echo esc_attr($tpoll_settings['feedback_question'] ?? ''); ?>" placeholder="<?php esc_attr_e('Was this post helpful?', '3task-polls'); ?>">
+                            <p class="description"><?php esc_html_e('Leave empty for the translated default question.', '3task-polls'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><?php esc_html_e('Post types', '3task-polls'); ?></th>
+                        <td>
+                            <?php
+                            $tpoll_fb_types = (array) ($tpoll_settings['feedback_post_types'] ?? array('post'));
+                            foreach (get_post_types(array('public' => true), 'objects') as $tpoll_pt) :
+                                if ('attachment' === $tpoll_pt->name) {
+                                    continue;
+                                }
+                                ?>
+                                <label style="margin-right:14px">
+                                    <input type="checkbox" name="tpoll_settings[feedback_post_types][]" value="<?php echo esc_attr($tpoll_pt->name); ?>" <?php checked(in_array($tpoll_pt->name, $tpoll_fb_types, true)); ?>>
+                                    <?php echo esc_html($tpoll_pt->labels->name); ?>
+                                </label>
+                            <?php endforeach; ?>
+                            <p class="description"><?php esc_html_e('No cookie, same privacy rules as your polls. The results per post are in the tab "Feedback".', '3task-polls'); ?></p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Privacy Settings -->
+            <div class="tpoll-card">
+                <div class="tpoll-card-header">
+                    <h3 class="tpoll-card-title">
+                        <span class="tpoll-card-title-icon">&#x1F512;</span>
+                        <?php esc_html_e('Privacy', '3task-polls'); ?>
+                    </h3>
+                </div>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">
+                            <label for="retention_days"><?php esc_html_e('Forget voter hashes after', '3task-polls'); ?></label>
+                        </th>
+                        <td>
+                            <input type="number" min="1" max="3650" class="small-text"
+                                   name="tpoll_settings[retention_days]"
+                                   id="retention_days"
+                                   value="<?php echo absint($tpoll_settings['retention_days'] ?? 30); ?>">
+                            <?php esc_html_e('days after a poll has ended or was closed', '3task-polls'); ?>
+                            <p class="description">
+                                <?php esc_html_e('The IP and browser hashes are only needed while a poll is open, to prevent duplicate votes. After this period they are removed every day. The vote counts stay.', '3task-polls'); ?>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><?php esc_html_e('Uninstall', '3task-polls'); ?></th>
+                        <td>
+                            <label>
+                                <input type="checkbox"
+                                       name="tpoll_settings[delete_on_uninstall]"
+                                       value="1"
+                                       <?php checked(!empty($tpoll_settings['delete_on_uninstall'])); ?>>
+                                <?php esc_html_e('Delete all polls, votes and settings when the plugin is deleted', '3task-polls'); ?>
+                            </label>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
             <!-- Appearance Settings -->
             <div class="tpoll-card">
                 <div class="tpoll-card-header">
@@ -120,21 +214,11 @@ $tpoll_settings = get_option('tpoll_settings', array());
                         </th>
                         <td>
                             <select name="tpoll_settings[theme]" id="theme">
-                                <option value="default" <?php selected($tpoll_settings['theme'] ?? 'default', 'default'); ?>>
-                                    <?php esc_html_e('Default', '3task-polls'); ?>
-                                </option>
-                                <option value="minimal" <?php selected($tpoll_settings['theme'] ?? '', 'minimal'); ?>>
-                                    <?php esc_html_e('Minimal', '3task-polls'); ?>
-                                </option>
-                                <option value="rounded" <?php selected($tpoll_settings['theme'] ?? '', 'rounded'); ?>>
-                                    <?php esc_html_e('Rounded', '3task-polls'); ?>
-                                </option>
-                                <option value="square" <?php selected($tpoll_settings['theme'] ?? '', 'square'); ?>>
-                                    <?php esc_html_e('Square', '3task-polls'); ?>
-                                </option>
-                                <option value="pill" <?php selected($tpoll_settings['theme'] ?? '', 'pill'); ?>>
-                                    <?php esc_html_e('Pill', '3task-polls'); ?>
-                                </option>
+                                <?php foreach (TPoll_Shortcode::themes() as $tpoll_theme_key => $tpoll_theme_label) : ?>
+                                    <option value="<?php echo esc_attr($tpoll_theme_key); ?>" <?php selected($tpoll_settings['theme'] ?? 'default', $tpoll_theme_key); ?>>
+                                        <?php echo esc_html($tpoll_theme_label); ?>
+                                    </option>
+                                <?php endforeach; ?>
                             </select>
                         </td>
                     </tr>
@@ -144,13 +228,13 @@ $tpoll_settings = get_option('tpoll_settings', array());
                         </th>
                         <td>
                             <select name="tpoll_settings[dark_mode]" id="dark_mode">
-                                <option value="auto" <?php selected($tpoll_settings['dark_mode'] ?? 'auto', 'auto'); ?>>
+                                <option value="auto" <?php selected($tpoll_settings['dark_mode'] ?? 'no', 'auto'); ?>>
                                     <?php esc_html_e('Auto (follow system)', '3task-polls'); ?>
                                 </option>
                                 <option value="yes" <?php selected($tpoll_settings['dark_mode'] ?? '', 'yes'); ?>>
                                     <?php esc_html_e('Always Dark', '3task-polls'); ?>
                                 </option>
-                                <option value="no" <?php selected($tpoll_settings['dark_mode'] ?? '', 'no'); ?>>
+                                <option value="no" <?php selected($tpoll_settings['dark_mode'] ?? 'no', 'no'); ?>>
                                     <?php esc_html_e('Always Light', '3task-polls'); ?>
                                 </option>
                             </select>
@@ -162,11 +246,8 @@ $tpoll_settings = get_option('tpoll_settings', array());
                         </th>
                         <td>
                             <select name="tpoll_settings[animation]" id="animation">
-                                <option value="fade" <?php selected($tpoll_settings['animation'] ?? 'fade', 'fade'); ?>>
-                                    <?php esc_html_e('Fade', '3task-polls'); ?>
-                                </option>
-                                <option value="slide" <?php selected($tpoll_settings['animation'] ?? '', 'slide'); ?>>
-                                    <?php esc_html_e('Slide', '3task-polls'); ?>
+                                <option value="grow" <?php selected(in_array($tpoll_settings['animation'] ?? 'grow', array('grow', 'fade', 'slide'), true)); ?>>
+                                    <?php esc_html_e('Growing result bars', '3task-polls'); ?>
                                 </option>
                                 <option value="none" <?php selected($tpoll_settings['animation'] ?? '', 'none'); ?>>
                                     <?php esc_html_e('None', '3task-polls'); ?>
@@ -220,19 +301,8 @@ $tpoll_settings = get_option('tpoll_settings', array());
                             <input type="text"
                                    name="tpoll_settings[button_text]"
                                    id="button_text"
-                                   value="<?php echo esc_attr($tpoll_settings['button_text'] ?? __('Vote', '3task-polls')); ?>"
-                                   class="regular-text">
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row">
-                            <label for="results_text"><?php esc_html_e('View Results', '3task-polls'); ?></label>
-                        </th>
-                        <td>
-                            <input type="text"
-                                   name="tpoll_settings[results_text]"
-                                   id="results_text"
-                                   value="<?php echo esc_attr($tpoll_settings['results_text'] ?? __('View Results', '3task-polls')); ?>"
+                                   value="<?php echo esc_attr($tpoll_settings['button_text'] ?? ''); ?>"
+                                   placeholder="<?php esc_attr_e('Vote', '3task-polls'); ?>"
                                    class="regular-text">
                         </td>
                     </tr>
@@ -244,7 +314,8 @@ $tpoll_settings = get_option('tpoll_settings', array());
                             <input type="text"
                                    name="tpoll_settings[voted_text]"
                                    id="voted_text"
-                                   value="<?php echo esc_attr($tpoll_settings['voted_text'] ?? __('You have already voted.', '3task-polls')); ?>"
+                                   value="<?php echo esc_attr($tpoll_settings['voted_text'] ?? ''); ?>"
+                                   placeholder="<?php esc_attr_e('You have already voted.', '3task-polls'); ?>"
                                    class="regular-text">
                         </td>
                     </tr>
@@ -256,8 +327,10 @@ $tpoll_settings = get_option('tpoll_settings', array());
                             <input type="text"
                                    name="tpoll_settings[closed_text]"
                                    id="closed_text"
-                                   value="<?php echo esc_attr($tpoll_settings['closed_text'] ?? __('This poll is closed.', '3task-polls')); ?>"
+                                   value="<?php echo esc_attr($tpoll_settings['closed_text'] ?? ''); ?>"
+                                   placeholder="<?php esc_attr_e('This poll is closed.', '3task-polls'); ?>"
                                    class="regular-text">
+                            <p class="description"><?php esc_html_e('Leave the text fields empty to use the translated default texts.', '3task-polls'); ?></p>
                         </td>
                     </tr>
                 </table>
@@ -282,8 +355,8 @@ $tpoll_settings = get_option('tpoll_settings', array());
                         </a>
                     </li>
                     <li>
-                        <a href="https://www.3task.de/docs/3task-polls/" target="_blank" rel="noopener noreferrer">
-                            &#x1F4D6; <?php esc_html_e('Documentation', '3task-polls'); ?>
+                        <a href="https://wordpress.org/plugins/3task-polls/#faq" target="_blank" rel="noopener noreferrer">
+                            &#x1F4D6; <?php esc_html_e('FAQ', '3task-polls'); ?>
                         </a>
                     </li>
                     <li>

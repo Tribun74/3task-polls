@@ -13,9 +13,16 @@ class TPoll_Vote {
 
     /**
      * Cast a vote
+     *
+     * @param int       $poll_id    Poll ID.
+     * @param int|int[] $answer_ids Answer ID(s).
+     * @param int       $value      Value (stars, thumbs, slider).
+     * @param int       $context    Post ID when the same poll is counted per post (feedback), else 0.
      */
-    public static function cast($poll_id, $answer_ids, $value = 1) {
+    public static function cast($poll_id, $answer_ids, $value = 1, $context = 0) {
         global $wpdb;
+
+        $context = absint($context);
 
         $poll = TPoll_Poll::get($poll_id);
 
@@ -34,10 +41,30 @@ class TPoll_Vote {
             return new WP_Error('login_required', __('Please log in to vote.', '3task-polls'));
         }
 
-        $ip_hash = self::hash_ip(self::get_ip());
-        $user_agent_hash = self::hash_user_agent();
+        /**
+         * Lets add-ons reject a vote before anything is stored, for example when a
+         * required extra field is missing. Return a WP_Error to stop the vote.
+         *
+         * @param null|WP_Error $check      Null to continue.
+         * @param TPoll_Poll    $poll       Poll.
+         * @param array         $answer_ids Submitted answer IDs.
+         * @param int           $value      Submitted value.
+         */
+        $check = apply_filters('tpoll_pre_vote', null, $poll, $answer_ids, $value);
+        if (is_wp_error($check)) {
+            return $check;
+        }
+
+        $ip = self::get_ip();
+        $ip_hash = self::hash_ip($ip, $poll_id);
+        $user_agent_hash = self::hash_user_agent($poll_id);
         $user_id = get_current_user_id();
-        $already_voted = self::has_voted($poll_id);
+
+        if (self::is_rate_limited(self::hash_ip($ip))) {
+            return new WP_Error('rate_limited', __('Too many votes from your network. Please try again later.', '3task-polls'));
+        }
+
+        $already_voted = self::has_voted($poll_id, $poll, $context);
         $allow_revote = (bool) $poll->get_setting('allow_revote', false);
 
         // Check if already voted
@@ -56,23 +83,31 @@ class TPoll_Vote {
             return new WP_Error('invalid_answer', __('Please select a valid answer.', '3task-polls'));
         }
 
-        // For single choice, only allow one answer
-        if ($poll->type === 'single' && count($answer_ids) > 1) {
-            $answer_ids = array($answer_ids[0]);
+        // Rating: 1-5, Voting: -1 or 1, choice polls: always 1
+        $raw_value = intval($value);
+        if ($poll->type === 'rating') {
+            $value = max(1, min(5, $raw_value));
+        } elseif ($poll->type === 'voting') {
+            $value = ($raw_value >= 0) ? 1 : -1;
+        } else {
+            $value = 1;
         }
 
-        // For rating/voting types, use the value
-        if (in_array($poll->type, array('rating', 'voting'))) {
-            $value = intval($value);
-            // Rating: 1-5, Voting: -1 or 1
-            if ($poll->type === 'rating') {
-                $value = max(1, min(5, $value));
-            } else {
-                $value = ($value >= 0) ? 1 : -1;
-            }
+        /**
+         * Filters the stored vote value, for types with their own scale.
+         * Return a WP_Error to reject the value.
+         *
+         * @param int        $value     Value after the built-in rules.
+         * @param TPoll_Poll $poll      Poll.
+         * @param int        $raw_value Value as submitted.
+         */
+        $value = apply_filters('tpoll_vote_value', $value, $poll, $raw_value);
+        if (is_wp_error($value)) {
+            return $value;
         }
+        $value = (int) $value;
 
-        if ($poll->type === 'multiple') {
+        if (in_array($poll->type, TPoll_Poll::multi_answer_types(), true)) {
             $max_choices = (int) $poll->get_setting('max_choices', 0);
             if ($max_choices > 0 && count($answer_ids) > $max_choices) {
                 return new WP_Error(
@@ -112,14 +147,9 @@ class TPoll_Vote {
             $use_transaction = true;
         }
 
-        if ($already_voted && $allow_revote) {
-            $remove_result = self::remove_existing_vote(
-                $poll_id,
-                $restriction,
-                $user_id,
-                $ip_hash,
-                $user_agent_hash
-            );
+        // Reaching this point with an existing vote means changing the vote is allowed.
+        if ($already_voted) {
+            $remove_result = self::remove_existing_vote($poll_id, $restriction, $user_id, $context);
 
             if (is_wp_error($remove_result) || $remove_result === false) {
                 if ($use_transaction) {
@@ -129,6 +159,9 @@ class TPoll_Vote {
                 return new WP_Error('vote_error', __('Error updating your existing vote.', '3task-polls'));
             }
         }
+
+        // One ballot per submission: counts voters correctly for multiple choice.
+        $ballot = wp_generate_password(32, false, false);
 
         foreach ($answer_ids as $answer_id) {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table.
@@ -140,28 +173,15 @@ class TPoll_Vote {
                     'user_id' => $user_id ?: null,
                     'ip_hash' => $ip_hash,
                     'user_agent_hash' => $user_agent_hash,
+                    'ballot' => $ballot,
+                    'context_id' => $context,
                     'vote_value' => $value,
                     'created_at' => current_time('mysql')
                 ),
-                array('%d', '%d', '%d', '%s', '%s', '%d', '%s')
+                array('%d', '%d', '%d', '%s', '%s', '%s', '%d', '%d', '%s')
             );
 
             if ($inserted === false) {
-                if ($use_transaction) {
-                    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Transaction control.
-                    $wpdb->query('ROLLBACK');
-                }
-                return new WP_Error('vote_error', __('Error recording vote.', '3task-polls'));
-            }
-
-            // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom table, table name is safe.
-            $updated = $wpdb->query($wpdb->prepare(
-                "UPDATE $answers_table SET votes = votes + %d WHERE id = %d",
-                $value,
-                $answer_id
-            ));
-            // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
-            if ($updated === false) {
                 if ($use_transaction) {
                     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Transaction control.
                     $wpdb->query('ROLLBACK');
@@ -180,176 +200,167 @@ class TPoll_Vote {
             }
         }
 
-        // Set voted cookie
-        self::set_voted_cookie($poll_id);
+        // Two parallel requests can both pass has_voted(). The older ballot wins, the newer one is removed.
+        if (!$allow_revote && self::lost_race($poll_id, $restriction, $user_id, $ballot, $context)) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table.
+            $wpdb->delete($votes_table, array('ballot' => $ballot), array('%s'));
+            return new WP_Error('already_voted', __('You have already voted.', '3task-polls'));
+        }
 
-        // Fire action
-        do_action('tpoll_vote_cast', $poll_id, $answer_ids, $value);
+        // The cookie is only part of the "cookie" restriction mode.
+        if ($restriction === 'cookie') {
+            self::set_voted_cookie($poll_id, $context);
+        }
+
+        /**
+         * Fires after a vote was stored.
+         *
+         * @param int    $poll_id    Poll ID.
+         * @param int[]  $answer_ids Answer IDs.
+         * @param int    $value      Stored value.
+         * @param string $ballot     ID of this vote submission.
+         * @param int    $context    Post ID for per-post polls, else 0.
+         */
+        do_action('tpoll_vote_cast', $poll_id, $answer_ids, $value, $ballot, $context);
 
         return true;
     }
 
     /**
-     * Remove previous vote(s) for a voter and rollback answer counters.
+     * SQL condition that matches the current visitor in a poll (and context).
+     * IP hashes are checked in the per-poll form and in the form used up to 1.0.5,
+     * so a vote from before the update is still recognised.
+     *
+     * @param int    $poll_id     Poll ID.
+     * @param string $restriction ip, cookie or user.
+     * @param int    $user_id     Current user.
+     * @param int    $context     Context (post ID or 0).
+     * @param bool   $with_agent  Also match the browser hash (cookie mode).
+     * @return string|null Prepared condition or null when there is nothing to match.
+     */
+    private static function voter_condition($poll_id, $restriction, $user_id, $context, $with_agent = false) {
+        global $wpdb;
+
+        if ($restriction === 'user') {
+            if (!$user_id) {
+                return null;
+            }
+            return $wpdb->prepare('poll_id = %d AND context_id = %d AND user_id = %d', $poll_id, $context, $user_id);
+        }
+
+        $ip = self::get_ip();
+        $where = $wpdb->prepare(
+            'poll_id = %d AND context_id = %d AND ip_hash IN (%s, %s)',
+            $poll_id,
+            $context,
+            self::hash_ip($ip, $poll_id),
+            self::hash_ip($ip)
+        );
+
+        if ($with_agent) {
+            $where .= $wpdb->prepare(
+                ' AND user_agent_hash IN (%s, %s)',
+                self::hash_user_agent($poll_id),
+                self::hash_user_agent()
+            );
+        }
+
+        return $where;
+    }
+
+    /**
+     * Check whether an older ballot of the same voter exists.
+     */
+    private static function lost_race($poll_id, $restriction, $user_id, $ballot, $context) {
+        global $wpdb;
+
+        if (!in_array($restriction, array('ip', 'user'), true)) {
+            return false;
+        }
+
+        $where = self::voter_condition($poll_id, $restriction, $user_id, $context);
+        if (null === $where) {
+            return false;
+        }
+
+        $votes_table = $wpdb->prefix . 'tpoll_votes';
+
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom table, $where is prepared in voter_condition().
+        $own_min = (int) $wpdb->get_var($wpdb->prepare("SELECT MIN(id) FROM $votes_table WHERE ballot = %s", $ballot));
+        $older = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $votes_table WHERE $where AND ballot <> %s AND id < %d", $ballot, $own_min));
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+
+        return $older > 0;
+    }
+
+    /**
+     * Remove previous vote(s) for a voter.
      *
      * @return bool|WP_Error
      */
-    private static function remove_existing_vote($poll_id, $restriction, $user_id, $ip_hash, $user_agent_hash) {
+    private static function remove_existing_vote($poll_id, $restriction, $user_id, $context) {
         global $wpdb;
 
-        $votes_table = $wpdb->prefix . 'tpoll_votes';
-        $answers_table = $wpdb->prefix . 'tpoll_answers';
-
-        switch ($restriction) {
-            case 'user':
-                if (!$user_id) {
-                    return new WP_Error('login_required', __('Please log in to vote.', '3task-polls'));
-                }
-                // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom table, table names are safe.
-                $answer_totals = $wpdb->get_results(
-                    $wpdb->prepare(
-                        "SELECT answer_id, SUM(vote_value) AS vote_total
-                         FROM $votes_table
-                         WHERE poll_id = %d AND user_id = %d
-                         GROUP BY answer_id",
-                        $poll_id,
-                        $user_id
-                    )
-                );
-                // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Delete on custom table as part of vote replacement.
-                $deleted = $wpdb->delete(
-                    $votes_table,
-                    array(
-                        'poll_id' => $poll_id,
-                        'user_id' => $user_id,
-                    ),
-                    array('%d', '%d')
-                );
-                break;
-            case 'cookie':
-                // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom table, table names are safe.
-                $answer_totals = $wpdb->get_results(
-                    $wpdb->prepare(
-                        "SELECT answer_id, SUM(vote_value) AS vote_total
-                         FROM $votes_table
-                         WHERE poll_id = %d AND ip_hash = %s AND user_agent_hash = %s
-                         GROUP BY answer_id",
-                        $poll_id,
-                        $ip_hash,
-                        $user_agent_hash
-                    )
-                );
-                // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Delete on custom table as part of vote replacement.
-                $deleted = $wpdb->delete(
-                    $votes_table,
-                    array(
-                        'poll_id' => $poll_id,
-                        'ip_hash' => $ip_hash,
-                        'user_agent_hash' => $user_agent_hash,
-                    ),
-                    array('%d', '%s', '%s')
-                );
-                break;
-            case 'ip':
-            default:
-                // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom table, table names are safe.
-                $answer_totals = $wpdb->get_results(
-                    $wpdb->prepare(
-                        "SELECT answer_id, SUM(vote_value) AS vote_total
-                         FROM $votes_table
-                         WHERE poll_id = %d AND ip_hash = %s
-                         GROUP BY answer_id",
-                        $poll_id,
-                        $ip_hash
-                    )
-                );
-                // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Delete on custom table as part of vote replacement.
-                $deleted = $wpdb->delete(
-                    $votes_table,
-                    array(
-                        'poll_id' => $poll_id,
-                        'ip_hash' => $ip_hash,
-                    ),
-                    array('%d', '%s')
-                );
-                break;
+        if ($restriction === 'user' && !$user_id) {
+            return new WP_Error('login_required', __('Please log in to vote.', '3task-polls'));
         }
 
-        if (!is_array($answer_totals)) {
-            $answer_totals = array();
+        $where = self::voter_condition($poll_id, $restriction, $user_id, $context, $restriction === 'cookie');
+        if (null === $where) {
+            return false;
         }
 
-        foreach ($answer_totals as $answer_total) {
-            // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom table, table name is safe.
-            $updated = $wpdb->query($wpdb->prepare(
-                "UPDATE $answers_table SET votes = votes - %d WHERE id = %d",
-                (int) $answer_total->vote_total,
-                (int) $answer_total->answer_id
-            ));
-            // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
-            if ($updated === false) {
-                return false;
-            }
-        }
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom table, $where is prepared in voter_condition().
+        $deleted = $wpdb->query("DELETE FROM {$wpdb->prefix}tpoll_votes WHERE $where");
 
         return $deleted !== false;
     }
 
     /**
-     * Check if user has voted
+     * Check if the current visitor has voted
+     *
+     * @param int             $poll_id Poll ID.
+     * @param TPoll_Poll|null $poll    Already loaded poll, saves a query.
+     * @param int             $context Post ID for per-post polls, else 0.
      */
-    public static function has_voted($poll_id) {
+    public static function has_voted($poll_id, $poll = null, $context = 0) {
         global $wpdb;
 
-        // Get poll settings
-        $poll = TPoll_Poll::get($poll_id);
+        if (!$poll) {
+            $poll = TPoll_Poll::get($poll_id);
+        }
         if (!$poll) {
             return false;
         }
 
         $restriction = $poll->get_setting('vote_restriction', 'ip');
 
-        switch ($restriction) {
-            case 'user':
-                // Check by user ID
-                $user_id = get_current_user_id();
-                if (!$user_id) {
-                    return false;
-                }
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table.
-                return (bool) $wpdb->get_var($wpdb->prepare(
-                    "SELECT COUNT(*) FROM {$wpdb->prefix}tpoll_votes WHERE poll_id = %d AND user_id = %d",
-                    $poll_id,
-                    $user_id
-                ));
-
-            case 'cookie':
-                // Check by cookie
-                return self::has_voted_cookie($poll_id);
-
-            case 'ip':
-            default:
-                // Check by IP hash (DSGVO compliant)
-                $ip_hash = self::hash_ip(self::get_ip());
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table.
-                return (bool) $wpdb->get_var($wpdb->prepare(
-                    "SELECT COUNT(*) FROM {$wpdb->prefix}tpoll_votes WHERE poll_id = %d AND ip_hash = %s",
-                    $poll_id,
-                    $ip_hash
-                ));
+        if ($restriction === 'cookie') {
+            return self::has_voted_cookie($poll_id, absint($context));
         }
+
+        $where = self::voter_condition($poll_id, $restriction, get_current_user_id(), absint($context));
+        if (null === $where) {
+            return false;
+        }
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom table, $where is prepared in voter_condition().
+        return (bool) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}tpoll_votes WHERE $where");
     }
 
     /**
      * Get results for a poll
+     *
+     * @param int             $poll_id Poll ID.
+     * @param TPoll_Poll|null $poll    Already loaded poll, saves a query.
+     * @param int|null        $context Post ID to count one post only, null for all votes.
      */
-    public static function get_results($poll_id) {
+    public static function get_results($poll_id, $poll = null, $context = null) {
         global $wpdb;
 
-        $poll = TPoll_Poll::get($poll_id);
+        if (!$poll) {
+            $poll = TPoll_Poll::get($poll_id);
+        }
         if (!$poll) {
             return null;
         }
@@ -357,62 +368,130 @@ class TPoll_Vote {
         $answers_table = $wpdb->prefix . 'tpoll_answers';
         $votes_table = $wpdb->prefix . 'tpoll_votes';
 
-        // Get answer results
         // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom table, table names are safe.
         $answers = $wpdb->get_results($wpdb->prepare(
-            "SELECT a.*,
-                    COALESCE(SUM(v.vote_value), 0) as total_value,
-                    COUNT(v.id) as vote_count
+            "SELECT a.id, a.answer_text, a.answer_image, a.sort_order,
+                    COALESCE(SUM(v.vote_value), 0) AS total_value,
+                    COUNT(v.id) AS vote_count,
+                    COALESCE(SUM(CASE WHEN v.vote_value > 0 THEN 1 ELSE 0 END), 0) AS up_count,
+                    COALESCE(SUM(CASE WHEN v.vote_value < 0 THEN 1 ELSE 0 END), 0) AS down_count
              FROM $answers_table a
-             LEFT JOIN $votes_table v ON a.id = v.answer_id
+             LEFT JOIN $votes_table v ON a.id = v.answer_id AND v.poll_id = a.poll_id AND (%d = -1 OR v.context_id = %d)
              WHERE a.poll_id = %d
-             GROUP BY a.id
+             GROUP BY a.id, a.answer_text, a.answer_image, a.sort_order
              ORDER BY a.sort_order ASC",
+            null === $context ? -1 : absint($context),
+            null === $context ? -1 : absint($context),
             $poll_id
         ));
         // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
-        // Calculate totals and percentages
         $total_votes = 0;
         $total_value = 0;
+        $up = 0;
+        $down = 0;
 
         foreach ($answers as $answer) {
-            $total_votes += $answer->vote_count;
-            $total_value += $answer->total_value;
+            $total_votes += (int) $answer->vote_count;
+            $total_value += (int) $answer->total_value;
+            $up += (int) $answer->up_count;
+            $down += (int) $answer->down_count;
+        }
+
+        $total_voters = $poll->get_total_voters($context);
+
+        // Single choice: shares of all votes, rounded so they add up to 100.
+        // Multiple choice: share of voters who picked the answer, so the sum can exceed 100.
+        $counts = array();
+        foreach ($answers as $answer) {
+            $counts[] = (int) $answer->vote_count;
+        }
+        if ($poll->type === 'multiple') {
+            $percentages = array();
+            foreach ($counts as $count) {
+                $percentages[] = $total_voters > 0 ? round(($count / $total_voters) * 100, 1) : 0;
+            }
+        } else {
+            $percentages = self::shares_summing_to_100($counts);
         }
 
         $results = array(
-            'poll_id' => $poll_id,
+            'poll_id' => (int) $poll_id,
             'poll_type' => $poll->type,
+            'context' => null === $context ? null : absint($context),
             'total_votes' => $total_votes,
-            'total_voters' => $poll->get_total_voters(),
+            'total_voters' => $total_voters,
+            'percent_base' => $poll->type === 'multiple' ? 'voters' : 'votes',
             'answers' => array()
         );
 
-        foreach ($answers as $answer) {
-            $percentage = $total_votes > 0 ? round(($answer->vote_count / $total_votes) * 100, 1) : 0;
-
+        foreach ($answers as $i => $answer) {
             $results['answers'][] = array(
                 'id' => (int) $answer->id,
                 'text' => $answer->answer_text,
                 'image' => $answer->answer_image,
                 'votes' => (int) $answer->vote_count,
                 'value' => (int) $answer->total_value,
-                'percentage' => $percentage
+                'percentage' => $percentages[$i]
             );
         }
 
-        // For rating type, calculate average
+        $results['average_value'] = $total_votes > 0 ? round($total_value / $total_votes, 1) : 0;
+
         if ($poll->type === 'rating') {
-            $results['average_rating'] = $total_votes > 0 ? round($total_value / $total_votes, 1) : 0;
+            $results['average_rating'] = $results['average_value'];
         }
 
-        // For voting type, calculate net score
         if ($poll->type === 'voting') {
-            $results['net_score'] = $total_value;
+            $results['up'] = $up;
+            $results['down'] = $down;
+            $results['net_score'] = $up - $down;
         }
 
-        return $results;
+        /**
+         * Filters the results of a poll.
+         *
+         * @param array      $results Results.
+         * @param TPoll_Poll $poll    Poll.
+         */
+        return apply_filters('tpoll_results', $results, $poll);
+    }
+
+    /**
+     * Percentages with one decimal that add up to exactly 100 (largest remainder).
+     *
+     * @param int[] $counts Vote counts.
+     * @return array<int,int|float>
+     */
+    private static function shares_summing_to_100($counts) {
+        $total = array_sum($counts);
+        if ($total <= 0) {
+            return array_fill(0, count($counts), 0);
+        }
+
+        $units = array();
+        $remainders = array();
+        foreach ($counts as $i => $count) {
+            $exact = $count / $total * 1000;
+            $units[$i] = (int) floor($exact);
+            $remainders[$i] = $exact - $units[$i];
+        }
+
+        $missing = 1000 - array_sum($units);
+        arsort($remainders);
+        foreach (array_keys($remainders) as $i) {
+            if ($missing <= 0) {
+                break;
+            }
+            $units[$i]++;
+            $missing--;
+        }
+
+        $shares = array();
+        foreach ($counts as $i => $count) {
+            $shares[$i] = $units[$i] / 10;
+        }
+        return $shares;
     }
 
     /**
@@ -430,62 +509,144 @@ class TPoll_Vote {
     }
 
     /**
-     * Get IP address
+     * Get the visitor's IP address.
+     *
+     * Only REMOTE_ADDR is trusted. Headers like X-Forwarded-For can be set by any visitor.
+     * Sites behind a trusted reverse proxy can return the real client IP via the
+     * "tpoll_client_ip" filter.
      */
     private static function get_ip() {
-        $ip = '';
+        $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
 
-        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-            $ip = sanitize_text_field(wp_unslash($_SERVER['HTTP_CLIENT_IP']));
-        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            $ip = sanitize_text_field(wp_unslash($_SERVER['HTTP_X_FORWARDED_FOR']));
-        } elseif (!empty($_SERVER['REMOTE_ADDR'])) {
-            $ip = sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR']));
-        }
+        /**
+         * Filters the IP address used for vote restriction and rate limiting.
+         *
+         * @param string $ip Value of REMOTE_ADDR.
+         */
+        $ip = (string) apply_filters('tpoll_client_ip', $ip);
 
-        // Handle comma-separated IPs
-        if (strpos($ip, ',') !== false) {
-            $ips = explode(',', $ip);
-            $ip = trim($ips[0]);
-        }
-
-        return $ip;
+        return filter_var($ip, FILTER_VALIDATE_IP) ? $ip : '';
     }
 
     /**
-     * Hash IP address (DSGVO compliant)
+     * Hash IP address. The plain IP is never stored.
+     *
+     * Since 1.0.6 the poll ID is part of the hash, so hashes of different polls
+     * cannot be linked. Without a poll ID the form of 1.0.5 and older is returned
+     * (used to recognise older votes and for the rate limit).
+     *
+     * @param string $ip      IP address.
+     * @param int    $poll_id Poll ID, 0 for the legacy form.
      */
-    private static function hash_ip($ip) {
+    private static function hash_ip($ip, $poll_id = 0) {
         $salt = wp_salt('auth');
+        if ($poll_id) {
+            return hash('sha256', 'tpoll|' . absint($poll_id) . '|' . $ip . '|' . $salt);
+        }
         return hash('sha256', $ip . $salt);
     }
 
     /**
-     * Hash user agent
+     * Hash user agent (same rules as hash_ip()).
+     *
+     * @param int $poll_id Poll ID, 0 for the legacy form.
      */
-    private static function hash_user_agent() {
+    private static function hash_user_agent($poll_id = 0) {
         $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT'])) : '';
         $salt = wp_salt('auth');
+        if ($poll_id) {
+            return hash('sha256', 'tpoll|' . absint($poll_id) . '|' . $user_agent . '|' . $salt);
+        }
         return hash('sha256', $user_agent . $salt);
     }
 
     /**
-     * Set voted cookie
+     * Limit vote requests per network.
      */
-    private static function set_voted_cookie($poll_id) {
-        $cookie_name = 'tpoll_voted_' . $poll_id;
-        $cookie_value = time();
+    private static function is_rate_limited($ip_hash) {
+        /**
+         * Filters how many vote requests one IP may send within the window.
+         *
+         * @param int $limit Default 20.
+         */
+        $limit = (int) apply_filters('tpoll_rate_limit', 20);
+        if ($limit <= 0) {
+            return false;
+        }
+
+        $key = 'tpoll_rl_' . substr($ip_hash, 0, 32);
+        $count = (int) get_transient($key);
+
+        if ($count >= $limit) {
+            return true;
+        }
+
+        set_transient($key, $count + 1, 10 * MINUTE_IN_SECONDS);
+        return false;
+    }
+
+    /**
+     * Set voted cookie (cookie restriction mode only)
+     */
+    private static function set_voted_cookie($poll_id, $context = 0) {
+        $cookie_name = self::cookie_name($poll_id, $context);
         $expires = time() + (365 * DAY_IN_SECONDS);
 
-        setcookie($cookie_name, $cookie_value, $expires, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
+        setcookie($cookie_name, '1', $expires, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
     }
 
     /**
      * Check voted cookie
      */
-    private static function has_voted_cookie($poll_id) {
-        $cookie_name = 'tpoll_voted_' . $poll_id;
-        return isset($_COOKIE[$cookie_name]);
+    private static function has_voted_cookie($poll_id, $context = 0) {
+        return isset($_COOKIE[self::cookie_name($poll_id, $context)]);
+    }
+
+    /**
+     * Cookie name: tpoll_voted_<poll>, with _<post> for per-post polls.
+     */
+    private static function cookie_name($poll_id, $context = 0) {
+        return 'tpoll_voted_' . absint($poll_id) . ($context ? '_' . absint($context) : '');
+    }
+
+    /**
+     * Remove voter fingerprints (IP and user agent hashes) of polls that ended
+     * more than $days days ago. Vote counts stay.
+     *
+     * @param int $days Retention in days.
+     * @return int Number of updated rows.
+     */
+    public static function forget_fingerprints($days) {
+        global $wpdb;
+
+        $days = absint($days);
+        if ($days < 1) {
+            return 0;
+        }
+
+        $votes_table = $wpdb->prefix . 'tpoll_votes';
+        $polls_table = $wpdb->prefix . 'tpoll_polls';
+        $cutoff = wp_date('Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS);
+
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom tables, table names are safe.
+        $poll_ids = $wpdb->get_col($wpdb->prepare(
+            "SELECT id FROM $polls_table
+             WHERE (end_date IS NOT NULL AND end_date < %s)
+                OR (status = 'closed' AND updated_at < %s)",
+            $cutoff,
+            $cutoff
+        ));
+
+        $updated = 0;
+        foreach ($poll_ids as $poll_id) {
+            $updated += (int) $wpdb->query($wpdb->prepare(
+                "UPDATE $votes_table SET ip_hash = '', user_agent_hash = NULL WHERE poll_id = %d AND ip_hash <> ''",
+                $poll_id
+            ));
+        }
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+
+        return $updated;
     }
 
     /**

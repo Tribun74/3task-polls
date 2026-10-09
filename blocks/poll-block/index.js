@@ -7,13 +7,15 @@
 (function(wp) {
     const { registerBlockType } = wp.blocks;
     const { InspectorControls, useBlockProps } = wp.blockEditor;
-    const { PanelBody, SelectControl, Placeholder, Spinner } = wp.components;
+    const { PanelBody, SelectControl, Placeholder } = wp.components;
     const { __ } = wp.i18n;
-    const { useState, useEffect } = wp.element;
-    const ServerSideRender = wp.serverSideRender;
+        const ServerSideRender = wp.serverSideRender;
 
     registerBlockType('tpoll/poll', {
         apiVersion: 3,
+        title: __('3task Polls', '3task-polls'),
+        icon: 'chart-bar',
+        category: 'widgets',
         edit: function(props) {
             const { attributes, setAttributes } = props;
             const { pollId } = attributes;
@@ -57,12 +59,14 @@
                         Placeholder,
                         {
                             icon: 'chart-bar',
-                            label: __('TPoll', '3task-polls'),
+                            label: __('3task Polls', '3task-polls'),
                             instructions: __('Select a poll from the sidebar settings.', '3task-polls')
                         },
                         wp.element.createElement(
                             SelectControl,
                             {
+                                label: __('Select Poll', '3task-polls'),
+                                hideLabelFromVision: true,
                                 value: pollId,
                                 options: polls,
                                 onChange: function(value) {

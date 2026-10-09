@@ -1,0 +1,1036 @@
+# Copyright (C) 2026 3task
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: 3task Polls: Cookieless Polls, Star Rating & Voting 1.0.7\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/3task-polls\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-10-03T20:35:23+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: 3task-polls\n"
+
+#. Plugin Name of the plugin
+#: 3task-polls.php
+msgid "3task Polls: Cookieless Polls, Star Rating & Voting"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: 3task-polls.php
+msgid "https://wordpress.org/plugins/3task-polls/"
+msgstr ""
+
+#. Description of the plugin
+#: 3task-polls.php
+msgid "Polls, star ratings, reactions and up/down voting that stay on your own server. Feedback below posts. No third-party service, no tracking cookie, IP addresses only as salted hashes. Gutenberg block and shortcode."
+msgstr ""
+
+#. Author of the plugin
+#: 3task-polls.php
+msgid "3task"
+msgstr ""
+
+#. Author URI of the plugin
+#: 3task-polls.php
+msgid "https://www.3task.de"
+msgstr ""
+
+#: 3task-polls.php:57
+msgid "3task Polls is paused because 3task Polls Pro is active and already contains all poll features. Your polls and votes are not affected."
+msgstr ""
+
+#: admin/class-admin.php:44
+#: admin/class-admin.php:45
+#: admin/class-admin.php:113
+#: blocks/poll-block/index.js:16
+#: blocks/poll-block/index.js:62
+msgid "3task Polls"
+msgstr ""
+
+#: admin/class-admin.php:60
+msgid "Dashboard"
+msgstr ""
+
+#: admin/class-admin.php:64
+msgid "Polls"
+msgstr ""
+
+#: admin/class-admin.php:68
+#: admin/class-admin.php:254
+msgid "Results"
+msgstr ""
+
+#: admin/class-admin.php:72
+#: admin/class-admin.php:259
+#: includes/bootstrap.php:341
+msgid "Settings"
+msgstr ""
+
+#: admin/class-admin.php:116
+msgid "Active"
+msgstr ""
+
+#: admin/class-admin.php:121
+#: admin/views/settings.php:347
+msgid "Support"
+msgstr ""
+
+#: admin/class-admin.php:122
+msgid "Rate"
+msgstr ""
+
+#: admin/class-admin.php:202
+msgid "Total Polls"
+msgstr ""
+
+#: admin/class-admin.php:209
+#: includes/class-poll.php:606
+msgid "Published"
+msgstr ""
+
+#: admin/class-admin.php:216
+msgid "Drafts"
+msgstr ""
+
+#: admin/class-admin.php:223
+msgid "Total Votes"
+msgstr ""
+
+#: admin/class-admin.php:235
+msgid "Welcome to 3task Polls"
+msgstr ""
+
+#: admin/class-admin.php:238
+msgid "Create polls, star ratings and up/down voting for your WordPress website. Use the shortcode or the block \"3task Polls\" to display polls anywhere."
+msgstr ""
+
+#: admin/class-admin.php:240
+msgid "Create Your First Poll"
+msgstr ""
+
+#: admin/class-admin.php
+msgid "Latest Polls"
+msgstr ""
+
+#: admin/class-admin.php:250
+msgid "New Poll"
+msgstr ""
+
+#: admin/class-admin.php:264
+msgid "Help"
+msgstr ""
+
+#: admin/class-admin.php:295
+msgid "All Polls"
+msgstr ""
+
+#: admin/class-admin.php:298
+#: admin/views/poll-edit.php:13
+msgid "Add New Poll"
+msgstr ""
+
+#: admin/class-admin.php:305
+msgid "No polls yet"
+msgstr ""
+
+#: admin/class-admin.php:306
+msgid "Create your first poll to get started!"
+msgstr ""
+
+#: admin/class-admin.php:308
+#: admin/views/poll-edit.php:186
+msgid "Create Poll"
+msgstr ""
+
+#: admin/class-admin.php:329
+msgid "Edit"
+msgstr ""
+
+#: admin/class-admin.php:332
+msgid "Duplicate"
+msgstr ""
+
+#: admin/class-admin.php:336
+msgid "Delete"
+msgstr ""
+
+#: admin/class-admin.php:356
+#: admin/class-admin.php:769
+#: admin/class-admin.php:793
+#: admin/class-admin.php:819
+#: includes/class-vote.php:30
+#: public/class-public.php:171
+msgid "Poll not found."
+msgstr ""
+
+#: admin/class-admin.php:390
+msgid "Poll Results"
+msgstr ""
+
+#: admin/class-admin.php:397
+msgid "No results yet"
+msgstr ""
+
+#: admin/class-admin.php:398
+msgid "Create and publish a poll to start collecting votes."
+msgstr ""
+
+#. translators: %s: average rating
+#: admin/class-admin.php:420
+#, php-format
+msgid "Average rating: %s / 5"
+msgstr ""
+
+#. translators: 1: thumbs up, 2: thumbs down
+#: admin/class-admin.php:425
+#, php-format
+msgid "Thumbs up: %1$d, thumbs down: %2$d"
+msgstr ""
+
+#. translators: %s: average value
+#: admin/class-admin.php:431
+#, php-format
+msgid "Average: %s"
+msgstr ""
+
+#. translators: 1: number of votes, 2: percentage
+#: admin/class-admin.php:444
+#, php-format
+msgid "%1$d votes (%2$s%%)"
+msgstr ""
+
+#: admin/class-admin.php:458
+msgid "Multiple choice: percentages are shares of voters, so they can add up to more than 100."
+msgstr ""
+
+#. translators: %d: total number of voters
+#: admin/class-admin.php:466
+#, php-format
+msgid "Total voters: %d"
+msgstr ""
+
+#: admin/class-admin.php:546
+msgid "Are you sure you want to delete this poll? This cannot be undone."
+msgstr ""
+
+#: admin/class-admin.php:547
+msgid "Are you sure you want to reset all votes for this poll?"
+msgstr ""
+
+#: admin/class-admin.php:548
+#: admin/class-admin.php:741
+#: admin/views/poll-edit.php:25
+msgid "Poll saved successfully!"
+msgstr ""
+
+#: admin/class-admin.php:549
+#: public/class-public.php:56
+msgid "An error occurred. Please try again."
+msgstr ""
+
+#: admin/class-admin.php:550
+#: admin/views/poll-edit.php:124
+msgid "Add Answer"
+msgstr ""
+
+#: admin/class-admin.php:551
+#: admin/views/poll-edit.php:111
+#: admin/views/poll-edit.php:360
+msgid "Remove"
+msgstr ""
+
+#: admin/class-admin.php:552
+#: admin/class-admin.php:701
+msgid "A poll needs at least two answers."
+msgstr ""
+
+#. translators: %d: number of votes
+#: admin/class-admin.php:555
+#, php-format
+msgid "This answer has %d votes. If you remove it and save, these votes are deleted. Continue?"
+msgstr ""
+
+#: admin/class-admin.php:628
+#: admin/class-admin.php:762
+#: admin/class-admin.php:786
+#: admin/class-admin.php:812
+msgid "Permission denied."
+msgstr ""
+
+#: admin/class-admin.php:651
+msgid "The end date must be after the start date."
+msgstr ""
+
+#: admin/class-admin.php:735
+msgid "Error saving poll."
+msgstr ""
+
+#: admin/class-admin.php:775
+msgid "Poll deleted successfully!"
+msgstr ""
+
+#: admin/class-admin.php:799
+msgid "Poll duplicated successfully!"
+msgstr ""
+
+#: admin/class-admin.php:837
+msgid "Votes reset successfully!"
+msgstr ""
+
+#: admin/views/poll-edit.php:13
+msgid "Edit Poll"
+msgstr ""
+
+#: admin/views/poll-edit.php:19
+msgid "Back to Polls"
+msgstr ""
+
+#: admin/views/poll-edit.php:44
+msgid "Poll Title"
+msgstr ""
+
+#: admin/views/poll-edit.php:50
+msgid "Poll Question"
+msgstr ""
+
+#: admin/views/poll-edit.php:54
+msgid "Enter your poll question..."
+msgstr ""
+
+#: admin/views/poll-edit.php:60
+msgid "Poll Type"
+msgstr ""
+
+#: admin/views/poll-edit.php:83
+msgid "Poll Answers"
+msgstr ""
+
+#. translators: %d: answer number
+#: admin/views/poll-edit.php:102
+#: admin/views/poll-edit.php:109
+#, php-format
+msgid "Answer %d"
+msgstr ""
+
+#: admin/views/poll-edit.php:119
+msgid "Use the five usual reactions"
+msgstr ""
+
+#: admin/views/poll-edit.php:121
+msgid "Each answer is one reaction, usually a single emoji. Visitors click a reaction to vote."
+msgstr ""
+
+#: admin/views/poll-edit.php:128
+msgid "Rating and Voting polls use the question as the item to rate/vote on."
+msgstr ""
+
+#: admin/views/poll-edit.php:148
+msgid "Publish"
+msgstr ""
+
+#: admin/views/poll-edit.php:151
+msgid "Status"
+msgstr ""
+
+#: admin/views/poll-edit.php:163
+msgid "Shortcode"
+msgstr ""
+
+#. translators: %d: number of total votes
+#: admin/views/poll-edit.php:170
+#, php-format
+msgid "Total Votes: %d"
+msgstr ""
+
+#. translators: %d: number of total voters
+#: admin/views/poll-edit.php:174
+#, php-format
+msgid "Total Voters: %d"
+msgstr ""
+
+#: admin/views/poll-edit.php:182
+msgid "Reset Votes"
+msgstr ""
+
+#: admin/views/poll-edit.php:186
+msgid "Update Poll"
+msgstr ""
+
+#: admin/views/poll-edit.php:194
+msgid "Schedule"
+msgstr ""
+
+#: admin/views/poll-edit.php:197
+msgid "Start Date"
+msgstr ""
+
+#: admin/views/poll-edit.php:205
+msgid "End Date"
+msgstr ""
+
+#: admin/views/poll-edit.php:213
+msgid "Leave empty for no time restriction. Before the start date the poll shows when it opens, after the end date it is closed."
+msgstr ""
+
+#: admin/views/poll-edit.php:220
+#: blocks/poll-block/index.js:35
+msgid "Poll Settings"
+msgstr ""
+
+#: admin/views/poll-edit.php:223
+msgid "Vote Restriction"
+msgstr ""
+
+#: admin/views/poll-edit.php:226
+#: admin/views/settings.php:45
+msgid "One vote per IP address (hashed, no cookie)"
+msgstr ""
+
+#: admin/views/poll-edit.php:229
+#: admin/views/settings.php:48
+msgid "One vote per browser (cookie, easy to bypass)"
+msgstr ""
+
+#: admin/views/poll-edit.php:232
+#: admin/views/settings.php:51
+msgid "Logged-in users only, one vote per account"
+msgstr ""
+
+#: admin/views/poll-edit.php:235
+msgid "IP: people sharing one network (office, school) can vote only once together."
+msgstr ""
+
+#: admin/views/poll-edit.php:238
+msgid "Show Results"
+msgstr ""
+
+#: admin/views/poll-edit.php:241
+#: admin/views/settings.php:66
+msgid "After Voting"
+msgstr ""
+
+#: admin/views/poll-edit.php:244
+msgid "Always"
+msgstr ""
+
+#: admin/views/poll-edit.php:247
+msgid "Never"
+msgstr ""
+
+#: admin/views/poll-edit.php:254
+msgid "Allow voters to change their vote"
+msgstr ""
+
+#: admin/views/poll-edit.php:260
+#: admin/views/settings.php:93
+msgid "Show total voters count"
+msgstr ""
+
+#: admin/views/poll-edit.php:266
+msgid "Randomize answer order"
+msgstr ""
+
+#: admin/views/poll-edit.php:270
+msgid "Show results as"
+msgstr ""
+
+#: admin/views/poll-edit.php:272
+msgid "Bars"
+msgstr ""
+
+#: admin/views/poll-edit.php:273
+msgid "Donut chart"
+msgstr ""
+
+#: admin/views/poll-edit.php:277
+msgid "Max Choices"
+msgstr ""
+
+#: admin/views/poll-edit.php:284
+msgid "0 = unlimited"
+msgstr ""
+
+#: admin/views/poll-edit.php:300
+msgid "Appearance"
+msgstr ""
+
+#: admin/views/poll-edit.php:303
+msgid "Theme"
+msgstr ""
+
+#: admin/views/poll-edit.php:313
+#: admin/views/settings.php:227
+msgid "Dark Mode"
+msgstr ""
+
+#: admin/views/poll-edit.php:316
+#: admin/views/settings.php:232
+msgid "Auto (follow system)"
+msgstr ""
+
+#: admin/views/poll-edit.php:319
+#: admin/views/settings.php:235
+msgid "Always Dark"
+msgstr ""
+
+#: admin/views/poll-edit.php:322
+#: admin/views/settings.php:238
+msgid "Always Light"
+msgstr ""
+
+#: admin/views/poll-edit.php:327
+msgid "Bar Color"
+msgstr ""
+
+#: admin/views/poll-edit.php:334
+msgid "Empty = color from the global settings."
+msgstr ""
+
+#. translators: %s: answer number placeholder
+#: admin/views/poll-edit.php:351
+#: admin/views/poll-edit.php:358
+#, php-format
+msgid "Answer %s"
+msgstr ""
+
+#: admin/views/settings.php:19
+msgid "Settings saved successfully!"
+msgstr ""
+
+#: admin/views/settings.php:34
+msgid "Voting Settings"
+msgstr ""
+
+#: admin/views/settings.php:40
+msgid "Default Vote Restriction"
+msgstr ""
+
+#: admin/views/settings.php:55
+msgid "Used for new polls. The plain IP address is never stored, only a salted SHA-256 hash."
+msgstr ""
+
+#: admin/views/settings.php:61
+msgid "Default Results Display"
+msgstr ""
+
+#: admin/views/settings.php:69
+msgid "Always Visible"
+msgstr ""
+
+#: admin/views/settings.php:72
+msgid "Never Show"
+msgstr ""
+
+#: admin/views/settings.php:78
+msgid "Other Options"
+msgstr ""
+
+#: admin/views/settings.php:85
+msgid "Allow voters to change their vote (default for new polls)"
+msgstr ""
+
+#: admin/views/settings.php:101
+msgid "Randomize answer order by default"
+msgstr ""
+
+#: admin/views/settings.php:113
+#: includes/class-feedback.php:89
+#: includes/class-feedback.php:194
+msgid "Feedback below posts"
+msgstr ""
+
+#: admin/views/settings.php:118
+msgid "Show below posts"
+msgstr ""
+
+#: admin/views/settings.php:122
+msgid "Ask readers below every post and count the answers per post"
+msgstr ""
+
+#: admin/views/settings.php:127
+msgid "Style"
+msgstr ""
+
+#: admin/views/settings.php:130
+msgid "Was this post helpful? (thumbs up/down)"
+msgstr ""
+
+#: admin/views/settings.php:131
+msgid "Reactions (emoji)"
+msgstr ""
+
+#: admin/views/settings.php:136
+msgid "Question"
+msgstr ""
+
+#: admin/views/settings.php:138
+#: includes/class-feedback.php:57
+#: includes/class-feedback.php:241
+msgid "Was this post helpful?"
+msgstr ""
+
+#: admin/views/settings.php:139
+msgid "Leave empty for the translated default question."
+msgstr ""
+
+#: admin/views/settings.php:143
+msgid "Post types"
+msgstr ""
+
+#: admin/views/settings.php:157
+msgid "No cookie, same privacy rules as your polls. The results per post are in the tab \"Feedback\"."
+msgstr ""
+
+#: admin/views/settings.php:168
+msgid "Privacy"
+msgstr ""
+
+#: admin/views/settings.php:174
+msgid "Forget voter hashes after"
+msgstr ""
+
+#: admin/views/settings.php:181
+msgid "days after a poll has ended or was closed"
+msgstr ""
+
+#: admin/views/settings.php:183
+msgid "The IP and browser hashes are only needed while a poll is open, to prevent duplicate votes. After this period they are removed every day. The vote counts stay."
+msgstr ""
+
+#: admin/views/settings.php:188
+msgid "Uninstall"
+msgstr ""
+
+#: admin/views/settings.php:195
+msgid "Delete all polls, votes and settings when the plugin is deleted"
+msgstr ""
+
+#: admin/views/settings.php:207
+msgid "Appearance Settings"
+msgstr ""
+
+#: admin/views/settings.php:213
+msgid "Default Theme"
+msgstr ""
+
+#: admin/views/settings.php:245
+msgid "Animation"
+msgstr ""
+
+#: admin/views/settings.php:250
+msgid "Growing result bars"
+msgstr ""
+
+#: admin/views/settings.php:253
+msgid "None"
+msgstr ""
+
+#: admin/views/settings.php:260
+msgid "Results Bar Color"
+msgstr ""
+
+#: admin/views/settings.php:273
+msgid "Results Bar Background"
+msgstr ""
+
+#: admin/views/settings.php:292
+msgid "Text Labels"
+msgstr ""
+
+#: admin/views/settings.php:298
+msgid "Vote Button"
+msgstr ""
+
+#: admin/views/settings.php:305
+#: includes/class-shortcode.php:44
+msgid "Vote"
+msgstr ""
+
+#: admin/views/settings.php:311
+msgid "Already Voted Message"
+msgstr ""
+
+#: admin/views/settings.php:318
+#: includes/class-shortcode.php:46
+#: includes/class-vote.php:72
+#: includes/class-vote.php:207
+#: public/class-public.php:58
+msgid "You have already voted."
+msgstr ""
+
+#: admin/views/settings.php:324
+msgid "Poll Closed Message"
+msgstr ""
+
+#: admin/views/settings.php:331
+#: includes/class-shortcode.php:48
+msgid "This poll is closed."
+msgstr ""
+
+#: admin/views/settings.php:333
+msgid "Leave the text fields empty to use the translated default texts."
+msgstr ""
+
+#: admin/views/settings.php:350
+msgid "Need help? Check out our resources:"
+msgstr ""
+
+#: admin/views/settings.php:354
+msgid "Support Forum"
+msgstr ""
+
+#: admin/views/settings.php:359
+msgid "FAQ"
+msgstr ""
+
+#: admin/views/settings.php:364
+msgid "Rate this Plugin"
+msgstr ""
+
+#: includes/bootstrap.php:136
+#: includes/bootstrap.php:147
+msgid "3task Polls votes"
+msgstr ""
+
+#: includes/bootstrap.php:177
+msgid "Poll votes"
+msgstr ""
+
+#: includes/bootstrap.php:180
+msgid "Poll"
+msgstr ""
+
+#: includes/bootstrap.php:181
+msgid "Answer"
+msgstr ""
+
+#: includes/bootstrap.php:182
+msgid "Value"
+msgstr ""
+
+#: includes/bootstrap.php:183
+msgid "Date"
+msgstr ""
+
+#: includes/bootstrap.php:225
+msgid "When you vote in a poll, this site stores your answer, the time and a salted SHA-256 hash of your IP address and browser identifier to prevent duplicate votes. The plain IP address is not stored. If you are logged in, the vote is linked to your user account. If the poll uses the cookie restriction, a cookie named tpoll_voted_ followed by the poll number is set for one year. The hashes are removed automatically after the poll has ended and the retention period set by the site owner has passed. No data is sent to third parties."
+msgstr ""
+
+#: includes/bootstrap.php:256
+msgid "-- Select Poll --"
+msgstr ""
+
+#: includes/bootstrap.php:281
+msgid "Please select a poll."
+msgstr ""
+
+#: includes/class-feedback.php:56
+msgid "How do you like this post?"
+msgstr ""
+
+#: includes/class-feedback.php:89
+msgid "Reactions below posts"
+msgstr ""
+
+#: includes/class-feedback.php:176
+msgid "Feedback"
+msgstr ""
+
+#: includes/class-feedback.php:197
+msgid "The feedback below posts is switched off. You can switch it on in the settings."
+msgstr ""
+
+#: includes/class-feedback.php:241
+msgid "Reactions"
+msgstr ""
+
+#: includes/class-feedback.php:243
+msgid "No votes yet."
+msgstr ""
+
+#: includes/class-feedback.php:247
+msgid "Post"
+msgstr ""
+
+#: includes/class-feedback.php:249
+msgid "Yes"
+msgstr ""
+
+#: includes/class-feedback.php:249
+msgid "No"
+msgstr ""
+
+#: includes/class-feedback.php:249
+msgid "Helpful"
+msgstr ""
+
+#: includes/class-feedback.php:255
+msgid "Votes"
+msgstr ""
+
+#: includes/class-poll.php:548
+msgid "Single Choice"
+msgstr ""
+
+#: includes/class-poll.php:549
+msgid "Multiple Choice"
+msgstr ""
+
+#: includes/class-poll.php:550
+msgid "Rating (Stars)"
+msgstr ""
+
+#: includes/class-poll.php:551
+msgid "Voting (Thumbs)"
+msgstr ""
+
+#: includes/class-poll.php:552
+msgid "Reactions (Emoji)"
+msgstr ""
+
+#: includes/class-poll.php:605
+msgid "Draft"
+msgstr ""
+
+#: includes/class-poll.php:607
+msgid "Closed"
+msgstr ""
+
+#: includes/class-poll.php:608
+msgid "Scheduled"
+msgstr ""
+
+#: includes/class-poll.php:617
+msgid "(Copy)"
+msgstr ""
+
+#: includes/class-shortcode.php:60
+msgid "Default"
+msgstr ""
+
+#: includes/class-shortcode.php:61
+msgid "Minimal"
+msgstr ""
+
+#: includes/class-shortcode.php:62
+msgid "Rounded"
+msgstr ""
+
+#: includes/class-shortcode.php:63
+msgid "Square"
+msgstr ""
+
+#: includes/class-shortcode.php:64
+msgid "Pill"
+msgstr ""
+
+#. translators: %s: date and time the poll opens
+#: includes/class-shortcode.php:235
+#, php-format
+msgid "This poll opens on %s"
+msgstr ""
+
+#: includes/class-shortcode.php:239
+msgid "This poll is not open yet."
+msgstr ""
+
+#: includes/class-shortcode.php:247
+#: includes/class-vote.php:41
+#: includes/class-vote.php:305
+msgid "Please log in to vote."
+msgstr ""
+
+#: includes/class-shortcode.php:248
+msgid "Log in"
+msgstr ""
+
+#: includes/class-shortcode.php:252
+msgid "Please enable JavaScript to vote."
+msgstr ""
+
+#: includes/class-shortcode.php:296
+msgid "Leave this field empty"
+msgstr ""
+
+#. translators: %d: maximum number of choices allowed
+#: includes/class-shortcode.php:398
+#, php-format
+msgid "Select up to %d options"
+msgstr ""
+
+#. translators: 1: star value, 2: maximum stars
+#: includes/class-shortcode.php:432
+#, php-format
+msgid "Rate %1$d of %2$d stars"
+msgstr ""
+
+#: includes/class-shortcode.php:440
+#: public/class-public.php:60
+msgid "Click to rate"
+msgstr ""
+
+#: includes/class-shortcode.php:465
+msgid "Thumbs up"
+msgstr ""
+
+#: includes/class-shortcode.php:471
+msgid "Thumbs down"
+msgstr ""
+
+#. translators: %d: number of votes
+#: includes/class-shortcode.php:526
+#: includes/class-shortcode.php:617
+#, php-format
+msgid "%d vote"
+msgid_plural "%d votes"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of thumbs up
+#: includes/class-shortcode.php:567
+#, php-format
+msgid "Thumbs up: %d"
+msgstr ""
+
+#. translators: %d: number of thumbs down
+#: includes/class-shortcode.php:573
+#, php-format
+msgid "Thumbs down: %d"
+msgstr ""
+
+#. translators: 1: reaction, 2: number of votes
+#: includes/class-shortcode.php:585
+#, php-format
+msgid "%1$s: %2$d"
+msgstr ""
+
+#. translators: 1: average rating, 2: number of ratings
+#: includes/class-shortcode.php:597
+#, php-format
+msgid "Average rating: %1$s / 5 (%2$d rating)"
+msgid_plural "Average rating: %1$s / 5 (%2$d ratings)"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-shortcode.php:625
+msgid "Percentages show the share of voters who picked each answer. Voters could pick more than one."
+msgstr ""
+
+#. translators: %d: number of voters
+#: includes/class-shortcode.php:634
+#, php-format
+msgid "%d voter"
+msgid_plural "%d voters"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-vote.php:35
+msgid "This poll is not active."
+msgstr ""
+
+#: includes/class-vote.php:64
+msgid "Too many votes from your network. Please try again later."
+msgstr ""
+
+#: includes/class-vote.php:83
+msgid "Please select a valid answer."
+msgstr ""
+
+#. translators: %d: maximum number of selections allowed
+#: includes/class-vote.php:117
+#, php-format
+msgid "You can select a maximum of %d answers."
+msgstr ""
+
+#: includes/class-vote.php:139
+msgid "One or more selected answers are invalid."
+msgstr ""
+
+#: includes/class-vote.php:159
+msgid "Error updating your existing vote."
+msgstr ""
+
+#: includes/class-vote.php:189
+#: includes/class-vote.php:199
+msgid "Error recording vote."
+msgstr ""
+
+#: public/class-public.php:57
+#: public/class-public.php:151
+msgid "Thank you for voting!"
+msgstr ""
+
+#: public/class-public.php:59
+#: public/class-public.php:132
+msgid "Please select an answer."
+msgstr ""
+
+#. translators: %s: rating value
+#: public/class-public.php:62
+#, php-format
+msgid "Your rating: %s"
+msgstr ""
+
+#: public/class-public.php:111
+msgid "Security check failed. Please reload the page and try again."
+msgstr ""
+
+#: public/class-public.php:116
+msgid "Your vote could not be counted."
+msgstr ""
+
+#: public/class-public.php:124
+msgid "Invalid poll."
+msgstr ""
+
+#: public/class-public.php:178
+msgid "Results are not available."
+msgstr ""
+
+#: blocks/poll-block/index.js:39
+#: blocks/poll-block/index.js:68
+msgid "Select Poll"
+msgstr ""
+
+#: blocks/poll-block/index.js:63
+msgid "Select a poll from the sidebar settings."
+msgstr ""
+
+#: blocks/poll-block/block.json
+msgctxt "block title"
+msgid "3task Polls"
+msgstr ""
+
+#: blocks/poll-block/block.json
+msgctxt "block description"
+msgid "Show a poll, star rating or up/down voting from 3task Polls."
+msgstr ""
+
+#: blocks/poll-block/block.json
+msgctxt "block keyword"
+msgid "poll"
+msgstr ""
+
+#: blocks/poll-block/block.json
+msgctxt "block keyword"
+msgid "vote"
+msgstr ""
+
+#: blocks/poll-block/block.json
+msgctxt "block keyword"
+msgid "survey"
+msgstr ""
+
+#: blocks/poll-block/block.json
+msgctxt "block keyword"
+msgid "rating"
+msgstr ""
+
+#: blocks/poll-block/block.json
+msgctxt "block keyword"
+msgid "umfrage"
+msgstr ""

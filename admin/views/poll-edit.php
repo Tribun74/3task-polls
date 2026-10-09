@@ -15,7 +15,7 @@ $tpoll_page_title = $tpoll_is_new ? __('Add New Poll', '3task-polls') : __('Edit
 <div class="wrap tpoll-wrap tpoll-edit-wrap">
     <h1 class="wp-heading-inline"><?php echo esc_html($tpoll_page_title); ?></h1>
 
-    <a href="<?php echo esc_url(admin_url('admin.php?page=tpoll')); ?>" class="page-title-action">
+    <a href="<?php echo esc_url(admin_url('admin.php?page=tpoll&tab=polls')); ?>" class="page-title-action">
         <?php esc_html_e('Back to Polls', '3task-polls'); ?>
     </a>
 
@@ -75,7 +75,11 @@ $tpoll_page_title = $tpoll_is_new ? __('Add New Poll', '3task-polls') : __('Edit
                     </div>
 
                     <!-- Answers -->
-                    <div class="tpoll-answers-wrap postbox" id="tpoll-answers-section">
+                    <?php
+                    $tpoll_is_choice = TPoll_Poll::is_choice_type($poll->type);
+                    $tpoll_vote_counts = $poll->id ? $poll->get_answer_vote_counts() : array();
+                    ?>
+                    <div class="tpoll-answers-wrap postbox<?php echo $tpoll_is_choice ? '' : ' tpoll-answers-collapsed'; ?>" id="tpoll-answers-section">
                         <h2 class="hndle"><?php esc_html_e('Poll Answers', '3task-polls'); ?></h2>
                         <div class="inside">
                             <div id="tpoll-answers-list" class="tpoll-answers-list">
@@ -90,8 +94,15 @@ $tpoll_page_title = $tpoll_is_new ? __('Add New Poll', '3task-polls') : __('Edit
 
                                 foreach ($tpoll_answers as $tpoll_index => $tpoll_answer) :
                                 ?>
-                                    <div class="tpoll-answer-row" data-index="<?php echo esc_attr($tpoll_index); ?>">
+                                    <div class="tpoll-answer-row" data-index="<?php echo esc_attr($tpoll_index); ?>" data-votes="<?php echo absint($tpoll_vote_counts[(int) $tpoll_answer->id] ?? 0); ?>">
+                                        <input type="hidden" name="answers[<?php echo esc_attr($tpoll_index); ?>][id]" value="<?php echo absint($tpoll_answer->id); ?>">
+                                        <input type="hidden" class="tpoll-answer-image" name="answers[<?php echo esc_attr($tpoll_index); ?>][image]" value="<?php echo esc_url($tpoll_answer->answer_image ?? ''); ?>">
+                                        <label class="screen-reader-text" for="tpoll-answer-<?php echo esc_attr($tpoll_index); ?>"><?php
+                                            /* translators: %d: answer number */
+                                            printf(esc_html__('Answer %d', '3task-polls'), absint($tpoll_index + 1));
+                                        ?></label>
                                         <input type="text"
+                                               id="tpoll-answer-<?php echo esc_attr($tpoll_index); ?>"
                                                name="answers[<?php echo esc_attr($tpoll_index); ?>][text]"
                                                value="<?php echo esc_attr($tpoll_answer->answer_text); ?>"
                                                <?php /* translators: %d: answer number */ ?>
@@ -104,16 +115,29 @@ $tpoll_page_title = $tpoll_is_new ? __('Add New Poll', '3task-polls') : __('Edit
                                 <?php endforeach; ?>
                             </div>
 
-                            <button type="button" id="tpoll-add-answer" class="button">
+                            <button type="button" id="tpoll-reactions-preset" class="button tpoll-reactions-only<?php echo $poll->type === 'reactions' ? '' : ' tpoll-hidden'; ?>">
+                                <?php esc_html_e('Use the five usual reactions', '3task-polls'); ?>
+                            </button>
+                            <p class="description tpoll-reactions-only<?php echo $poll->type === 'reactions' ? '' : ' tpoll-hidden'; ?>"><?php esc_html_e('Each answer is one reaction, usually a single emoji. Visitors click a reaction to vote.', '3task-polls'); ?></p>
+                            <button type="button" id="tpoll-add-answer" class="button tpoll-choice-only<?php echo $tpoll_is_choice ? '' : ' tpoll-hidden'; ?>">
                                 <span class="dashicons dashicons-plus-alt2"></span>
                                 <?php esc_html_e('Add Answer', '3task-polls'); ?>
                             </button>
 
-                            <p class="description tpoll-rating-hint tpoll-hidden">
+                            <p class="description tpoll-rating-hint<?php echo $tpoll_is_choice ? ' tpoll-hidden' : ''; ?>">
                                 <?php esc_html_e('Rating and Voting polls use the question as the item to rate/vote on.', '3task-polls'); ?>
                             </p>
                         </div>
                     </div>
+
+                    <?php
+                    /**
+                     * Fires below the answer box of the poll editor.
+                     *
+                     * @param TPoll_Poll $poll Poll.
+                     */
+                    do_action('tpoll_edit_after_answers', $poll);
+                    ?>
                 </div>
 
                 <!-- Sidebar -->
@@ -153,7 +177,7 @@ $tpoll_page_title = $tpoll_is_new ? __('Add New Poll', '3task-polls') : __('Edit
                             <?php endif; ?>
 
                             <div class="tpoll-publish-actions">
-                                <?php if ($poll->id) : ?>
+                                <?php if ($poll->id && current_user_can('manage_tpoll')) : ?>
                                     <a href="#" class="tpoll-reset-votes submitdelete" data-poll-id="<?php echo esc_attr($poll->id); ?>">
                                         <?php esc_html_e('Reset Votes', '3task-polls'); ?>
                                     </a>
@@ -186,7 +210,7 @@ $tpoll_page_title = $tpoll_is_new ? __('Add New Poll', '3task-polls') : __('Edit
                                        class="widefat">
                             </p>
                             <p class="description">
-                                <?php esc_html_e('Leave empty for no time restriction.', '3task-polls'); ?>
+                                <?php esc_html_e('Leave empty for no time restriction. Before the start date the poll shows when it opens, after the end date it is closed.', '3task-polls'); ?>
                             </p>
                         </div>
                     </div>
@@ -199,15 +223,16 @@ $tpoll_page_title = $tpoll_is_new ? __('Add New Poll', '3task-polls') : __('Edit
                                 <label for="vote_restriction"><?php esc_html_e('Vote Restriction', '3task-polls'); ?></label>
                                 <select name="vote_restriction" id="vote_restriction" class="widefat">
                                     <option value="ip" <?php selected($poll->get_setting('vote_restriction', 'ip'), 'ip'); ?>>
-                                        <?php esc_html_e('By IP Address (DSGVO-compliant)', '3task-polls'); ?>
+                                        <?php esc_html_e('One vote per IP address (hashed, no cookie)', '3task-polls'); ?>
                                     </option>
                                     <option value="cookie" <?php selected($poll->get_setting('vote_restriction'), 'cookie'); ?>>
-                                        <?php esc_html_e('By Cookie', '3task-polls'); ?>
+                                        <?php esc_html_e('One vote per browser (cookie, easy to bypass)', '3task-polls'); ?>
                                     </option>
                                     <option value="user" <?php selected($poll->get_setting('vote_restriction'), 'user'); ?>>
-                                        <?php esc_html_e('By User Account', '3task-polls'); ?>
+                                        <?php esc_html_e('Logged-in users only, one vote per account', '3task-polls'); ?>
                                     </option>
                                 </select>
+                                <span class="description"><?php esc_html_e('IP: people sharing one network (office, school) can vote only once together.', '3task-polls'); ?></span>
                             </p>
                             <p>
                                 <label for="show_results"><?php esc_html_e('Show Results', '3task-polls'); ?></label>
@@ -225,6 +250,12 @@ $tpoll_page_title = $tpoll_is_new ? __('Add New Poll', '3task-polls') : __('Edit
                             </p>
                             <p>
                                 <label>
+                                    <input type="checkbox" name="allow_revote" value="1" <?php checked($poll->get_setting('allow_revote', false)); ?>>
+                                    <?php esc_html_e('Allow voters to change their vote', '3task-polls'); ?>
+                                </label>
+                            </p>
+                            <p>
+                                <label>
                                     <input type="checkbox" name="show_voters_count" value="1" <?php checked($poll->get_setting('show_voters_count', true)); ?>>
                                     <?php esc_html_e('Show total voters count', '3task-polls'); ?>
                                 </label>
@@ -235,7 +266,14 @@ $tpoll_page_title = $tpoll_is_new ? __('Add New Poll', '3task-polls') : __('Edit
                                     <?php esc_html_e('Randomize answer order', '3task-polls'); ?>
                                 </label>
                             </p>
-                            <p class="tpoll-multiple-only tpoll-hidden">
+                            <p class="tpoll-single-only<?php echo $poll->type === 'single' ? '' : ' tpoll-hidden'; ?>">
+                                <label for="result_chart"><?php esc_html_e('Show results as', '3task-polls'); ?></label>
+                                <select name="result_chart" id="result_chart" class="widefat">
+                                    <option value="bars" <?php selected($poll->get_setting('result_chart', 'bars'), 'bars'); ?>><?php esc_html_e('Bars', '3task-polls'); ?></option>
+                                    <option value="donut" <?php selected($poll->get_setting('result_chart', 'bars'), 'donut'); ?>><?php esc_html_e('Donut chart', '3task-polls'); ?></option>
+                                </select>
+                            </p>
+                            <p class="tpoll-multiple-only<?php echo $poll->type === 'multiple' ? '' : ' tpoll-hidden'; ?>">
                                 <label for="max_choices"><?php esc_html_e('Max Choices', '3task-polls'); ?></label>
                                 <input type="number"
                                        name="max_choices"
@@ -245,6 +283,15 @@ $tpoll_page_title = $tpoll_is_new ? __('Add New Poll', '3task-polls') : __('Edit
                                        class="small-text">
                                 <span class="description"><?php esc_html_e('0 = unlimited', '3task-polls'); ?></span>
                             </p>
+                            <?php
+                            /**
+                             * Fires at the end of the poll settings box. Fields are saved via the
+                             * "tpoll_save_poll_settings" filter.
+                             *
+                             * @param TPoll_Poll $poll Poll.
+                             */
+                            do_action('tpoll_edit_settings', $poll);
+                            ?>
                         </div>
                     </div>
 
@@ -255,33 +302,23 @@ $tpoll_page_title = $tpoll_is_new ? __('Add New Poll', '3task-polls') : __('Edit
                             <p>
                                 <label for="theme"><?php esc_html_e('Theme', '3task-polls'); ?></label>
                                 <select name="theme" id="theme" class="widefat">
-                                    <option value="default" <?php selected($poll->get_setting('theme', 'default'), 'default'); ?>>
-                                        <?php esc_html_e('Default', '3task-polls'); ?>
-                                    </option>
-                                    <option value="minimal" <?php selected($poll->get_setting('theme'), 'minimal'); ?>>
-                                        <?php esc_html_e('Minimal', '3task-polls'); ?>
-                                    </option>
-                                    <option value="rounded" <?php selected($poll->get_setting('theme'), 'rounded'); ?>>
-                                        <?php esc_html_e('Rounded', '3task-polls'); ?>
-                                    </option>
-                                    <option value="square" <?php selected($poll->get_setting('theme'), 'square'); ?>>
-                                        <?php esc_html_e('Square', '3task-polls'); ?>
-                                    </option>
-                                    <option value="pill" <?php selected($poll->get_setting('theme'), 'pill'); ?>>
-                                        <?php esc_html_e('Pill', '3task-polls'); ?>
-                                    </option>
+                                    <?php foreach (TPoll_Shortcode::themes() as $tpoll_theme_key => $tpoll_theme_label) : ?>
+                                        <option value="<?php echo esc_attr($tpoll_theme_key); ?>" <?php selected($poll->get_setting('theme', 'default'), $tpoll_theme_key); ?>>
+                                            <?php echo esc_html($tpoll_theme_label); ?>
+                                        </option>
+                                    <?php endforeach; ?>
                                 </select>
                             </p>
                             <p>
                                 <label for="dark_mode"><?php esc_html_e('Dark Mode', '3task-polls'); ?></label>
                                 <select name="dark_mode" id="dark_mode" class="widefat">
-                                    <option value="auto" <?php selected($poll->get_setting('dark_mode', 'auto'), 'auto'); ?>>
+                                    <option value="auto" <?php selected($poll->get_setting('dark_mode', 'no'), 'auto'); ?>>
                                         <?php esc_html_e('Auto (follow system)', '3task-polls'); ?>
                                     </option>
                                     <option value="yes" <?php selected($poll->get_setting('dark_mode'), 'yes'); ?>>
                                         <?php esc_html_e('Always Dark', '3task-polls'); ?>
                                     </option>
-                                    <option value="no" <?php selected($poll->get_setting('dark_mode'), 'no'); ?>>
+                                    <option value="no" <?php selected($poll->get_setting('dark_mode', 'no'), 'no'); ?>>
                                         <?php esc_html_e('Always Light', '3task-polls'); ?>
                                     </option>
                                 </select>
@@ -291,9 +328,10 @@ $tpoll_page_title = $tpoll_is_new ? __('Add New Poll', '3task-polls') : __('Edit
                                 <input type="text"
                                        name="bar_color"
                                        id="bar_color"
-                                       value="<?php echo esc_attr($poll->get_style('bar_color', '#4F46E5')); ?>"
+                                       value="<?php echo esc_attr($poll->get_style('bar_color', '')); ?>"
                                        class="tpoll-color-picker"
-                                       data-default-color="#4F46E5">
+                                       data-default-color="">
+                                <span class="description"><?php esc_html_e('Empty = color from the global settings.', '3task-polls'); ?></span>
                             </p>
                         </div>
                     </div>
@@ -305,8 +343,15 @@ $tpoll_page_title = $tpoll_is_new ? __('Add New Poll', '3task-polls') : __('Edit
 </div>
 
 <script type="text/html" id="tmpl-tpoll-answer-row">
-    <div class="tpoll-answer-row" data-index="{{data.index}}">
+    <div class="tpoll-answer-row" data-index="{{data.index}}" data-votes="0">
+        <input type="hidden" name="answers[{{data.index}}][id]" value="0">
+        <input type="hidden" class="tpoll-answer-image" name="answers[{{data.index}}][image]" value="">
+        <label class="screen-reader-text" for="tpoll-answer-{{data.index}}"><?php
+            /* translators: %s: answer number placeholder */
+            printf(esc_html__('Answer %s', '3task-polls'), '{{data.num}}');
+        ?></label>
         <input type="text"
+               id="tpoll-answer-{{data.index}}"
                name="answers[{{data.index}}][text]"
                value=""
                <?php /* translators: %s: answer number placeholder */ ?>

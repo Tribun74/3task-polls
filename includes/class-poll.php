@@ -244,9 +244,14 @@ class TPoll_Poll {
      */
     private static function table_exists($table) {
         global $wpdb;
+        static $known = array();
 
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table availability check before custom-table reads.
-        return $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table)) === $table;
+        if (!isset($known[$table])) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table availability check before custom-table reads.
+            $known[$table] = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table)) === $table;
+        }
+
+        return $known[$table];
     }
 
     /**
@@ -354,33 +359,79 @@ class TPoll_Poll {
     }
 
     /**
-     * Save answers
+     * Save answers.
+     *
+     * Existing answers are updated by ID, so votes stay attached to them.
+     * Only answers that were removed in the editor are deleted, together with their votes.
+     *
+     * @param array $answers List of array('id' => int, 'text' => string, 'image' => string).
      */
     public function save_answers($answers) {
         global $wpdb;
 
         $table = $wpdb->prefix . 'tpoll_answers';
+        $votes_table = $wpdb->prefix . 'tpoll_votes';
 
-        // Delete existing answers
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table.
-        $wpdb->delete($table, array('poll_id' => $this->id), array('%d'));
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom table, table name is safe.
+        $existing_ids = array_map('intval', $wpdb->get_col($wpdb->prepare(
+            "SELECT id FROM $table WHERE poll_id = %d",
+            $this->id
+        )));
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
-        // Insert new answers
-        foreach ($answers as $index => $answer) {
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table.
-            $wpdb->insert(
-                $table,
-                array(
-                    'poll_id' => $this->id,
-                    'answer_text' => sanitize_text_field($answer['text']),
-                    'answer_image' => isset($answer['image']) ? esc_url_raw($answer['image']) : null,
-                    'sort_order' => $index
-                ),
-                array('%d', '%s', '%s', '%d')
+        $kept_ids = array();
+
+        foreach (array_values($answers) as $index => $answer) {
+            $answer_id = isset($answer['id']) ? absint($answer['id']) : 0;
+            $data = array(
+                'answer_text' => sanitize_text_field($answer['text']),
+                'answer_image' => !empty($answer['image']) ? esc_url_raw($answer['image']) : null,
+                'sort_order' => $index
             );
+
+            if ($answer_id && in_array($answer_id, $existing_ids, true)) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table.
+                $wpdb->update($table, $data, array('id' => $answer_id, 'poll_id' => $this->id), array('%s', '%s', '%d'), array('%d', '%d'));
+                $kept_ids[] = $answer_id;
+            } else {
+                $data['poll_id'] = $this->id;
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table.
+                $wpdb->insert($table, $data, array('%s', '%s', '%d', '%d'));
+            }
+        }
+
+        foreach (array_diff($existing_ids, $kept_ids) as $removed_id) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table.
+            $wpdb->delete($votes_table, array('poll_id' => $this->id, 'answer_id' => $removed_id), array('%d', '%d'));
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table.
+            $wpdb->delete($table, array('id' => $removed_id, 'poll_id' => $this->id), array('%d', '%d'));
         }
 
         $this->load_answers();
+    }
+
+    /**
+     * Number of votes per answer ID, for the editor warning when removing an answer.
+     *
+     * @return array<int,int>
+     */
+    public function get_answer_vote_counts() {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'tpoll_votes';
+
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom table, table name is safe.
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT answer_id, COUNT(*) AS c FROM $table WHERE poll_id = %d GROUP BY answer_id",
+            $this->id
+        ));
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+
+        $counts = array();
+        foreach ((array) $rows as $row) {
+            $counts[(int) $row->answer_id] = (int) $row->c;
+        }
+        return $counts;
     }
 
     /**
@@ -401,17 +452,20 @@ class TPoll_Poll {
     }
 
     /**
-     * Get total voters (unique)
+     * Get total voters: one ballot per submitted vote, also for multiple choice.
      */
-    public function get_total_voters() {
+    public function get_total_voters($context = null) {
         global $wpdb;
 
         $table = $wpdb->prefix . 'tpoll_votes';
+        $ctx = null === $context ? -1 : absint($context);
 
         // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom table, table name is safe.
         $tpoll_result = (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(DISTINCT ip_hash) FROM $table WHERE poll_id = %d",
-            $this->id
+            "SELECT COUNT(DISTINCT ballot) FROM $table WHERE poll_id = %d AND (%d = -1 OR context_id = %d)",
+            $this->id,
+            $ctx,
+            $ctx
         ));
         // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
         return $tpoll_result;
@@ -447,6 +501,17 @@ class TPoll_Poll {
     }
 
     /**
+     * Check if the poll has a start date in the future (or is scheduled without one)
+     */
+    public function is_upcoming() {
+        if ($this->status === 'scheduled' && empty($this->start_date)) {
+            return true;
+        }
+
+        return !empty($this->start_date) && current_time('mysql') < $this->start_date;
+    }
+
+    /**
      * Check if poll is closed
      */
     public function is_closed() {
@@ -479,12 +544,57 @@ class TPoll_Poll {
      * Get poll types
      */
     public static function get_types() {
-        return array(
+        $types = array(
             'single' => __('Single Choice', '3task-polls'),
             'multiple' => __('Multiple Choice', '3task-polls'),
             'rating' => __('Rating (Stars)', '3task-polls'),
-            'voting' => __('Voting (Thumbs)', '3task-polls')
+            'voting' => __('Voting (Thumbs)', '3task-polls'),
+            'reactions' => __('Reactions (Emoji)', '3task-polls')
         );
+
+        /**
+         * Filters the poll types. Add-ons register their own types here.
+         *
+         * @param array $types Type key => label.
+         */
+        return (array) apply_filters('tpoll_poll_types', $types);
+    }
+
+    /**
+     * Types with a list of answers in the editor (at least two).
+     *
+     * @return string[]
+     */
+    public static function choice_types() {
+        /**
+         * Filters the types that use an answer list.
+         *
+         * @param string[] $types Default: single, multiple, reactions.
+         */
+        return (array) apply_filters('tpoll_choice_types', array('single', 'multiple', 'reactions'));
+    }
+
+    /**
+     * Types where one vote may select several answers.
+     *
+     * @return string[]
+     */
+    public static function multi_answer_types() {
+        /**
+         * Filters the types that accept several answers per vote.
+         *
+         * @param string[] $types Default: multiple.
+         */
+        return (array) apply_filters('tpoll_multi_answer_types', array('multiple'));
+    }
+
+    /**
+     * Is this a type with an answer list?
+     *
+     * @param string $type Poll type.
+     */
+    public static function is_choice_type($type) {
+        return in_array($type, self::choice_types(), true);
     }
 
     /**

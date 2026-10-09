@@ -70,6 +70,9 @@ var TPollAdmin = {
         // Duplicate poll
         $(document).on('click', '.tpoll-duplicate', this.handleDuplicatePoll);
 
+        // Reactions preset
+        $(document).on('click', '#tpoll-reactions-preset', this.fillReactions);
+
         // Reset votes
         $(document).on('click', '.tpoll-reset-votes', this.handleResetVotes);
 
@@ -84,21 +87,41 @@ var TPollAdmin = {
         e.preventDefault();
         var $ = jQuery;
 
-        var $list = $('#tpoll-answers-list, .poll-answers-list');
-        var count = $list.find('.tpoll-answer-row, .poll-answer-item').length;
+        var $list = $('#tpoll-answers-list');
+        var $rows = $list.find('.tpoll-answer-row');
+
+        // Next free index: after removing a row, the row count would reuse an existing index.
+        var next = 0;
+        $rows.each(function() {
+            next = Math.max(next, (parseInt($(this).attr('data-index'), 10) || 0) + 1);
+        });
 
         var tmpl = wp.template('tpoll-answer-row');
-        if (typeof tmpl === 'function') {
-            $list.append(tmpl({ index: count, num: count + 1 }));
-        } else {
-            // Fallback
-            var html = '<div class="tpoll-answer-row" data-index="' + count + '">' +
-                '<input type="text" name="answers[' + count + '][text]" value="" placeholder="Answer ' + (count + 1) + '" class="tpoll-answer-input">' +
-                '<button type="button" class="tpoll-remove-answer button-link-delete" title="Remove">' +
-                '<span class="dashicons dashicons-trash"></span>' +
-                '</button></div>';
-            $list.append(html);
-        }
+        $list.append(tmpl({ index: next, num: $rows.length + 1 }));
+        $list.find('.tpoll-answer-row').last().find('.tpoll-answer-input').trigger('focus');
+    },
+
+    /**
+     * Fill the answer rows with the usual reactions (only empty rows are used,
+     * missing rows are added).
+     */
+    fillReactions: function(e) {
+        e.preventDefault();
+        var $ = jQuery;
+        var preset = tpollAdmin.strings.reactionsPreset || [];
+        var $list = $('#tpoll-answers-list');
+
+        preset.forEach(function(emoji, i) {
+            var $rows = $list.find('.tpoll-answer-row');
+            if (i >= $rows.length) {
+                $('#tpoll-add-answer').trigger('click');
+                $rows = $list.find('.tpoll-answer-row');
+            }
+            var $input = $rows.eq(i).find('.tpoll-answer-input');
+            if ($input.val() === '') {
+                $input.val(emoji);
+            }
+        });
     },
 
     /**
@@ -108,11 +131,16 @@ var TPollAdmin = {
         e.preventDefault();
         var $ = jQuery;
 
-        var $row = $(this).closest('.tpoll-answer-row, .poll-answer-item');
+        var $row = $(this).closest('.tpoll-answer-row');
         var $list = $row.parent();
 
-        if ($list.children().length <= 2) {
-            window.alert(tpollAdmin.strings.error || 'At least 2 answers are required.');
+        if ($list.children('.tpoll-answer-row').length <= 2) {
+            window.alert(tpollAdmin.strings.minAnswers);
+            return;
+        }
+
+        var votes = parseInt($row.attr('data-votes'), 10) || 0;
+        if (votes > 0 && !window.confirm(tpollAdmin.strings.confirmRemoveVoted.replace('%d', votes))) {
             return;
         }
 
@@ -163,17 +191,18 @@ var TPollAdmin = {
         $('.tpoll-type-option').removeClass('selected');
         $(this).closest('.tpoll-type-option').addClass('selected');
 
-        // Show/hide type-specific options
-        if (type === 'multiple') {
-            $('.tpoll-multiple-only').removeClass('tpoll-hidden');
-            $('.tpoll-rating-hint').addClass('tpoll-hidden');
-        } else if (type === 'rating' || type === 'voting') {
-            $('.tpoll-multiple-only').addClass('tpoll-hidden');
-            $('.tpoll-rating-hint').removeClass('tpoll-hidden');
-        } else {
-            $('.tpoll-multiple-only').addClass('tpoll-hidden');
-            $('.tpoll-rating-hint').addClass('tpoll-hidden');
-        }
+        var choiceTypes = (tpollAdmin.choiceTypes || ['single', 'multiple']);
+        var isChoice = choiceTypes.indexOf(type) !== -1;
+
+        $('.tpoll-multiple-only').toggleClass('tpoll-hidden', type !== 'multiple');
+        $('.tpoll-single-only').toggleClass('tpoll-hidden', type !== 'single');
+        $('.tpoll-reactions-only').toggleClass('tpoll-hidden', type !== 'reactions');
+        $('.tpoll-rating-hint').toggleClass('tpoll-hidden', isChoice);
+        $('.tpoll-choice-only').toggleClass('tpoll-hidden', !isChoice);
+        $('#tpoll-answers-section').toggleClass('tpoll-answers-collapsed', !isChoice);
+
+        // Add-ons show or hide their own fields on this event.
+        $(document).trigger('tpoll:typechange', [type]);
     },
 
     /**
@@ -266,6 +295,8 @@ var TPollAdmin = {
             success: function(response) {
                 if (response.success) {
                     window.location.reload();
+                } else {
+                    window.alert(response.data.message || tpollAdmin.strings.error);
                 }
             }
         });

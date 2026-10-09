@@ -22,7 +22,6 @@ class TPoll_Admin {
     public function __construct() {
         add_action('admin_menu', array($this, 'add_menu'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_assets'));
-        add_action('admin_init', array($this, 'handle_actions'));
         add_action('admin_init', array($this, 'register_settings'));
 
         // Set current tab
@@ -56,7 +55,7 @@ class TPoll_Admin {
      * Get available tabs
      */
     private function get_tabs() {
-        return array(
+        $tabs = array(
             'dashboard' => array(
                 'title' => __('Dashboard', '3task-polls'),
                 'icon' => 'dashicons-dashboard'
@@ -74,6 +73,21 @@ class TPoll_Admin {
                 'icon' => 'dashicons-admin-settings'
             ),
         );
+
+        /**
+         * Filters the admin tabs. Add-ons render their tab on the action
+         * "tpoll_admin_tab_{key}".
+         *
+         * @param array $tabs Key => array('title' => ..., 'icon' => ...).
+         */
+        $tabs = (array) apply_filters('tpoll_admin_tabs', $tabs);
+
+        // Settings are saved through options.php, which requires manage_options.
+        if (!current_user_can('manage_options')) {
+            unset($tabs['settings']);
+        }
+
+        return $tabs;
     }
 
     /**
@@ -104,8 +118,8 @@ class TPoll_Admin {
                         </div>
                     </div>
                     <div class="tpoll-admin-header-right">
-                        <a href="https://wordpress.org/support/plugin/3task-polls/" target="_blank" class="tpoll-header-btn">&#x1F4AC; <?php esc_html_e( 'Support', '3task-polls' ); ?></a>
-                        <a href="https://wordpress.org/plugins/3task-polls/#reviews" target="_blank" class="tpoll-header-btn">&#x2B50; <?php esc_html_e( 'Rate', '3task-polls' ); ?></a>
+                        <a href="https://wordpress.org/support/plugin/3task-polls/" target="_blank" rel="noopener noreferrer" class="tpoll-header-btn">&#x1F4AC; <?php esc_html_e( 'Support', '3task-polls' ); ?></a>
+                        <a href="https://wordpress.org/plugins/3task-polls/#reviews" target="_blank" rel="noopener noreferrer" class="tpoll-header-btn">&#x2B50; <?php esc_html_e( 'Rate', '3task-polls' ); ?></a>
                     </div>
                 </div>
             </div>
@@ -118,7 +132,11 @@ class TPoll_Admin {
                     $icon = isset( $tab_icons[ $tab_key ] ) ? $tab_icons[ $tab_key ] : '';
                 ?>
                     <a href="<?php echo esc_url( $url ); ?>" class="nav-tab <?php echo esc_attr( $active_class ); ?>">
-                        <span class="tpoll-tab-icon"><?php echo wp_kses( $icon, array() ); ?></span>
+                        <?php if ( '' !== $icon ) : ?>
+                            <span class="tpoll-tab-icon"><?php echo wp_kses( $icon, array() ); ?></span>
+                        <?php elseif ( ! empty( $tab['icon'] ) ) : ?>
+                            <span class="tpoll-tab-icon dashicons <?php echo esc_attr( $tab['icon'] ); ?>" aria-hidden="true"></span>
+                        <?php endif; ?>
                         <?php echo esc_html( $tab['title'] ); ?>
                         <?php if ( 'polls' === $tab_key && $poll_count > 0 ) : ?>
                             <span class="tpoll-tab-badge"><?php echo absint( $poll_count ); ?></span>
@@ -150,10 +168,21 @@ class TPoll_Admin {
                 $this->render_results();
                 break;
             case 'settings':
-                $this->render_settings();
+                if (current_user_can('manage_options')) {
+                    $this->render_settings();
+                } else {
+                    $this->render_dashboard();
+                }
                 break;
             default:
-                $this->render_dashboard();
+                if (array_key_exists($this->current_tab, $this->get_tabs()) && has_action('tpoll_admin_tab_' . $this->current_tab)) {
+                    /**
+                     * Renders an add-on tab.
+                     */
+                    do_action('tpoll_admin_tab_' . $this->current_tab);
+                } else {
+                    $this->render_dashboard();
+                }
         }
     }
 
@@ -198,6 +227,41 @@ class TPoll_Admin {
         <!-- Content Grid -->
         <div class="tpoll-content-grid">
             <div>
+                <?php if ( $stats['total_polls'] > 0 ) : ?>
+                <!-- Latest Polls -->
+                <div class="tpoll-card">
+                    <div class="tpoll-card-header">
+                        <h2 class="tpoll-card-title">
+                            <span class="tpoll-card-title-icon">&#x1F4CA;</span>
+                            <?php esc_html_e( 'Latest Polls', '3task-polls' ); ?>
+                        </h2>
+                        <a href="<?php echo esc_url( admin_url( 'admin.php?page=tpoll&tab=polls' ) ); ?>" class="tpoll-card-action">
+                            <?php esc_html_e( 'All Polls', '3task-polls' ); ?>
+                        </a>
+                    </div>
+                    <ul class="tpoll-latest-list">
+                        <?php
+                        $tpoll_statuses = TPoll_Poll::get_statuses();
+                        foreach ( TPoll_Poll::get_all( array( 'per_page' => 5, 'orderby' => 'id' ) ) as $tpoll_item ) :
+                            $tpoll_voters = $tpoll_item->get_total_voters();
+                            ?>
+                            <li>
+                                <a href="<?php echo esc_url( admin_url( 'admin.php?page=tpoll&tab=polls&action=edit&poll=' . $tpoll_item->id ) ); ?>"><?php echo esc_html( $tpoll_item->title ); ?></a>
+                                <span class="tpoll-badge tpoll-badge-<?php echo esc_attr( $tpoll_item->status ); ?>"><?php echo esc_html( $tpoll_statuses[ $tpoll_item->status ] ?? $tpoll_item->status ); ?></span>
+                                <span class="tpoll-latest-count">
+                                    <?php
+                                    /* translators: %d: number of voters */
+                                    echo esc_html( sprintf( _n( '%d voter', '%d voters', $tpoll_voters, '3task-polls' ), $tpoll_voters ) );
+                                    ?>
+                                </span>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <a href="<?php echo esc_url( admin_url( 'admin.php?page=tpoll&tab=polls&action=new' ) ); ?>" class="tpoll-btn-primary">
+                        &#x2795; <?php esc_html_e( 'Add New Poll', '3task-polls' ); ?>
+                    </a>
+                </div>
+                <?php else : ?>
                 <!-- Welcome Card -->
                 <div class="tpoll-card">
                     <div class="tpoll-card-header">
@@ -206,11 +270,12 @@ class TPoll_Admin {
                             <?php esc_html_e( 'Welcome to 3task Polls', '3task-polls' ); ?>
                         </h2>
                     </div>
-                    <p><?php esc_html_e( 'Create polls, surveys, quizzes and voting for your WordPress website. Use the shortcode or Gutenberg block to display polls anywhere.', '3task-polls' ); ?></p>
+                    <p><?php esc_html_e( 'Create polls, star ratings and up/down voting for your WordPress website. Use the shortcode or the block "3task Polls" to display polls anywhere.', '3task-polls' ); ?></p>
                     <a href="<?php echo esc_url( admin_url( 'admin.php?page=tpoll&tab=polls&action=new' ) ); ?>" class="tpoll-btn-primary">
                         &#x2795; <?php esc_html_e( 'Create Your First Poll', '3task-polls' ); ?>
                     </a>
                 </div>
+                <?php endif; ?>
             </div>
 
             <div>
@@ -224,11 +289,13 @@ class TPoll_Admin {
                         <div class="tpoll-quick-action-icon">&#x1F4C8;</div>
                         <div class="tpoll-quick-action-label"><?php esc_html_e( 'Results', '3task-polls' ); ?></div>
                     </a>
+                    <?php if ( current_user_can( 'manage_options' ) ) : ?>
                     <a href="<?php echo esc_url( admin_url( 'admin.php?page=tpoll&tab=settings' ) ); ?>" class="tpoll-quick-action">
                         <div class="tpoll-quick-action-icon">&#x2699;&#xFE0F;</div>
                         <div class="tpoll-quick-action-label"><?php esc_html_e( 'Settings', '3task-polls' ); ?></div>
                     </a>
-                    <a href="https://wordpress.org/support/plugin/3task-polls/" target="_blank" class="tpoll-quick-action">
+                    <?php endif; ?>
+                    <a href="https://wordpress.org/support/plugin/3task-polls/" target="_blank" rel="noopener noreferrer" class="tpoll-quick-action">
                         <div class="tpoll-quick-action-icon">&#x2753;</div>
                         <div class="tpoll-quick-action-label"><?php esc_html_e( 'Help', '3task-polls' ); ?></div>
                     </a>
@@ -279,23 +346,32 @@ class TPoll_Admin {
             </div>
         <?php else : ?>
             <div class="tpoll-polls-grid">
-                <?php foreach ( $polls as $poll ) : ?>
+                <?php
+                $tpoll_statuses = TPoll_Poll::get_statuses();
+                $tpoll_types = TPoll_Poll::get_types();
+                foreach ( $polls as $poll ) : ?>
                     <div class="tpoll-poll-card">
                         <div class="tpoll-poll-card-header">
                             <h4 class="tpoll-poll-card-title"><?php echo esc_html( $poll->title ); ?></h4>
-                            <span class="tpoll-badge tpoll-badge-<?php echo esc_attr( $poll->status ); ?>"><?php echo esc_html( ucfirst( $poll->status ) ); ?></span>
+                            <span class="tpoll-badge tpoll-badge-<?php echo esc_attr( $poll->status ); ?>"><?php echo esc_html( $tpoll_statuses[ $poll->status ] ?? $poll->status ); ?></span>
                         </div>
                         <div class="tpoll-poll-card-meta">
-                            <span class="tpoll-badge"><?php echo esc_html( ucfirst( $poll->type ) ); ?></span>
+                            <span class="tpoll-badge"><?php echo esc_html( $tpoll_types[ $poll->type ] ?? $poll->type ); ?></span>
+                            <code>[tpoll id="<?php echo absint( $poll->id ); ?>"]</code>
                         </div>
                         <p><?php echo esc_html( wp_trim_words( $poll->question, 15 ) ); ?></p>
                         <div class="tpoll-poll-card-actions">
                             <a href="<?php echo esc_url( admin_url( 'admin.php?page=tpoll&tab=polls&action=edit&poll=' . $poll->id ) ); ?>">
                                 <?php esc_html_e( 'Edit', '3task-polls' ); ?>
                             </a>
+                            <button type="button" class="tpoll-duplicate button-link" data-poll-id="<?php echo absint( $poll->id ); ?>">
+                                <?php esc_html_e( 'Duplicate', '3task-polls' ); ?>
+                            </button>
+                            <?php if ( current_user_can( 'delete_tpoll' ) ) : ?>
                             <button type="button" class="tpoll-delete-btn" data-poll-id="<?php echo absint( $poll->id ); ?>">
                                 <?php esc_html_e( 'Delete', '3task-polls' ); ?>
                             </button>
+                            <?php endif; ?>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -325,6 +401,16 @@ class TPoll_Admin {
      */
     private function render_new_poll() {
         $poll = new TPoll_Poll();
+        $global = get_option('tpoll_settings', array());
+        $poll->settings = array(
+            'vote_restriction' => $global['vote_restriction'] ?? 'ip',
+            'show_results' => $global['show_results'] ?? 'after_vote',
+            'allow_revote' => !empty($global['allow_revote']),
+            'show_voters_count' => $global['show_voters_count'] ?? true,
+            'randomize_answers' => !empty($global['randomize_answers']),
+            'theme' => $global['theme'] ?? 'default',
+            'dark_mode' => $global['dark_mode'] ?? 'no',
+        );
         require_once TPOLL_PLUGIN_DIR . 'admin/views/poll-edit.php';
     }
 
@@ -348,8 +434,9 @@ class TPoll_Admin {
                 <p><?php esc_html_e( 'Create and publish a poll to start collecting votes.', '3task-polls' ); ?></p>
             </div>
         <?php else : ?>
-            <?php foreach ( $polls as $poll_obj ) :
-                $results = TPoll_Vote::get_results( $poll_obj->id );
+            <?php foreach ( $polls as $poll_row ) :
+                $poll_obj = TPoll_Poll::get( $poll_row->id );
+                $results = $poll_obj ? TPoll_Vote::get_results( $poll_obj->id, $poll_obj ) : null;
                 if ( ! $results || empty( $results['total_voters'] ) ) {
                     continue;
                 }
@@ -358,11 +445,29 @@ class TPoll_Admin {
                     <div class="tpoll-card-header">
                         <h3 class="tpoll-card-title"><?php echo esc_html( $poll_obj->title ); ?></h3>
                         <span class="tpoll-badge tpoll-badge-<?php echo esc_attr( $poll_obj->status ); ?>">
-                            <?php echo esc_html( ucfirst( $poll_obj->status ) ); ?>
+                            <?php $tpoll_statuses = TPoll_Poll::get_statuses(); echo esc_html( $tpoll_statuses[ $poll_obj->status ] ?? $poll_obj->status ); ?>
                         </span>
                     </div>
                     <p class="tpoll-text-muted"><?php echo esc_html( $poll_obj->question ); ?></p>
 
+                    <?php if ( 'rating' === $poll_obj->type ) : ?>
+                        <p><strong><?php
+                        /* translators: %s: average rating */
+                        printf( esc_html__( 'Average rating: %s / 5', '3task-polls' ), esc_html( number_format_i18n( (float) $results['average_rating'], 1 ) ) );
+                        ?></strong></p>
+                    <?php elseif ( 'voting' === $poll_obj->type ) : ?>
+                        <p><strong><?php
+                        /* translators: 1: thumbs up, 2: thumbs down */
+                        printf( esc_html__( 'Thumbs up: %1$d, thumbs down: %2$d', '3task-polls' ), absint( $results['up'] ), absint( $results['down'] ) );
+                        ?></strong></p>
+                    <?php endif; ?>
+                    <?php if ( ! in_array( $poll_obj->type, array( 'rating', 'voting' ), true ) && ! TPoll_Poll::is_choice_type( $poll_obj->type ) ) : ?>
+                        <p><strong><?php
+                        /* translators: %s: average value */
+                        printf( esc_html__( 'Average: %s', '3task-polls' ), esc_html( number_format_i18n( (float) $results['average_value'], 1 ) ) );
+                        ?></strong></p>
+                    <?php endif; ?>
+                    <?php if ( TPoll_Poll::is_choice_type( $poll_obj->type ) ) : ?>
                     <div class="tpoll-results-bars">
                         <?php foreach ( $results['answers'] as $answer ) : ?>
                             <div class="tpoll-result-row">
@@ -385,6 +490,10 @@ class TPoll_Admin {
                             </div>
                         <?php endforeach; ?>
                     </div>
+                    <?php if ( 'multiple' === $poll_obj->type ) : ?>
+                        <p class="description"><?php esc_html_e( 'Multiple choice: percentages are shares of voters, so they can add up to more than 100.', '3task-polls' ); ?></p>
+                    <?php endif; ?>
+                    <?php endif; ?>
 
                     <div class="tpoll-result-footer">
                         <?php
@@ -459,7 +568,8 @@ class TPoll_Admin {
         wp_enqueue_script(
             'tpoll-admin',
             TPOLL_PLUGIN_URL . 'assets/js/admin.js',
-            array('jquery'),
+            // wp-util provides wp.template() for new answer rows.
+            array('jquery', 'wp-util'),
             TPOLL_VERSION,
             true
         );
@@ -467,95 +577,24 @@ class TPoll_Admin {
         wp_localize_script('tpoll-admin', 'tpollAdmin', array(
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('tpoll_admin'),
+            'choiceTypes' => TPoll_Poll::choice_types(),
             'strings' => array(
                 'confirmDelete' => __('Are you sure you want to delete this poll? This cannot be undone.', '3task-polls'),
                 'confirmReset' => __('Are you sure you want to reset all votes for this poll?', '3task-polls'),
                 'saved' => __('Poll saved successfully!', '3task-polls'),
                 'error' => __('An error occurred. Please try again.', '3task-polls'),
                 'addAnswer' => __('Add Answer', '3task-polls'),
-                'removeAnswer' => __('Remove', '3task-polls')
+                'removeAnswer' => __('Remove', '3task-polls'),
+                'minAnswers' => __('A poll needs at least two answers.', '3task-polls'),
+                'reactionsPreset' => array('👍', '❤️', '😂', '😮', '😢'),
+                /* translators: %d: number of votes */
+                'confirmRemoveVoted' => __('This answer has %d votes. If you remove it and save, these votes are deleted. Continue?', '3task-polls')
             )
         ));
-
-        // Media uploader for image polls (Pro feature indicator)
-        wp_enqueue_media();
 
         // Color picker
         wp_enqueue_style('wp-color-picker');
         wp_enqueue_script('wp-color-picker');
-    }
-
-    /**
-     * Handle admin actions
-     */
-    public function handle_actions() {
-        if (!current_user_can('edit_tpoll')) {
-            return;
-        }
-
-        // Handle single poll delete
-        if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['poll'])) {
-            if (!current_user_can('delete_tpoll')) {
-                wp_die(esc_html__('Permission denied.', '3task-polls'));
-            }
-            $tpoll_poll_id = absint($_GET['poll']);
-            if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'] ?? '')), 'tpoll_delete_' . $tpoll_poll_id)) {
-                wp_die(esc_html__('Security check failed', '3task-polls'));
-            }
-
-            $poll = TPoll_Poll::get($tpoll_poll_id);
-            if ($poll) {
-                $poll->delete();
-            }
-
-            wp_safe_redirect(admin_url('admin.php?page=tpoll&tab=polls&deleted=1&tpoll_notice=' . wp_create_nonce('tpoll_admin_notice')));
-            exit;
-        }
-
-        // Handle bulk actions
-        if (isset($_POST['action']) && isset($_POST['poll_ids']) && is_array($_POST['poll_ids'])) {
-            if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'] ?? '')), 'bulk-tpoll')) {
-                wp_die(esc_html__('Security check failed', '3task-polls'));
-            }
-
-            $action = sanitize_text_field(wp_unslash($_POST['action']));
-            $poll_ids = array_map('absint', wp_unslash($_POST['poll_ids']));
-            $tpoll_notice_nonce = wp_create_nonce('tpoll_admin_notice');
-
-            switch ($action) {
-                case 'delete':
-                    foreach ($poll_ids as $poll_id) {
-                        $poll = TPoll_Poll::get($poll_id);
-                        if ($poll) {
-                            $poll->delete();
-                        }
-                    }
-                    wp_safe_redirect(admin_url('admin.php?page=tpoll&tab=polls&deleted=' . count($poll_ids) . '&tpoll_notice=' . $tpoll_notice_nonce));
-                    exit;
-
-                case 'publish':
-                    foreach ($poll_ids as $poll_id) {
-                        $poll = TPoll_Poll::get($poll_id);
-                        if ($poll) {
-                            $poll->status = 'published';
-                            $poll->save();
-                        }
-                    }
-                    wp_safe_redirect(admin_url('admin.php?page=tpoll&tab=polls&updated=' . count($poll_ids) . '&tpoll_notice=' . $tpoll_notice_nonce));
-                    exit;
-
-                case 'close':
-                    foreach ($poll_ids as $poll_id) {
-                        $poll = TPoll_Poll::get($poll_id);
-                        if ($poll) {
-                            $poll->status = 'closed';
-                            $poll->save();
-                        }
-                    }
-                    wp_safe_redirect(admin_url('admin.php?page=tpoll&tab=polls&updated=' . count($poll_ids) . '&tpoll_notice=' . $tpoll_notice_nonce));
-                    exit;
-            }
-        }
     }
 
     /**
@@ -571,56 +610,48 @@ class TPoll_Admin {
      * Sanitize settings
      */
     public function sanitize_settings($input) {
+        $input = is_array($input) ? $input : array();
         $sanitized = array();
 
-        $sanitized['vote_restriction'] = sanitize_text_field($input['vote_restriction'] ?? 'ip');
-        $sanitized['show_results'] = sanitize_text_field($input['show_results'] ?? 'after_vote');
+        $sanitized['vote_restriction'] = self::pick($input['vote_restriction'] ?? '', array('ip', 'cookie', 'user'), 'ip');
+        $sanitized['show_results'] = self::pick($input['show_results'] ?? '', array('after_vote', 'always', 'never'), 'after_vote');
         $sanitized['allow_revote'] = !empty($input['allow_revote']);
-        $sanitized['results_bar_color'] = sanitize_hex_color($input['results_bar_color'] ?? '#4F46E5');
-        $sanitized['results_bar_bg'] = sanitize_hex_color($input['results_bar_bg'] ?? '#E5E7EB');
-        $sanitized['button_text'] = sanitize_text_field($input['button_text'] ?? __('Vote', '3task-polls'));
-        $sanitized['results_text'] = sanitize_text_field($input['results_text'] ?? __('View Results', '3task-polls'));
-        $sanitized['voted_text'] = sanitize_text_field($input['voted_text'] ?? __('You have already voted.', '3task-polls'));
-        $sanitized['closed_text'] = sanitize_text_field($input['closed_text'] ?? __('This poll is closed.', '3task-polls'));
-        $sanitized['theme'] = sanitize_text_field($input['theme'] ?? 'default');
-        $sanitized['dark_mode'] = sanitize_text_field($input['dark_mode'] ?? 'auto');
-        $sanitized['animation'] = sanitize_text_field($input['animation'] ?? 'fade');
+        // The defaults are stored empty, so designs keep their own colors unless the site owner picks one.
+        $bar_color = (string) sanitize_hex_color($input['results_bar_color'] ?? '');
+        $bar_bg = (string) sanitize_hex_color($input['results_bar_bg'] ?? '');
+        $sanitized['results_bar_color'] = strtoupper($bar_color) === '#4F46E5' ? '' : $bar_color;
+        $sanitized['results_bar_bg'] = strtoupper($bar_bg) === '#E5E7EB' ? '' : $bar_bg;
+        $sanitized['button_text'] = sanitize_text_field($input['button_text'] ?? '');
+        $sanitized['voted_text'] = sanitize_text_field($input['voted_text'] ?? '');
+        $sanitized['closed_text'] = sanitize_text_field($input['closed_text'] ?? '');
+        $sanitized['theme'] = self::pick($input['theme'] ?? '', array_keys(TPoll_Shortcode::themes()), 'default');
+        $sanitized['dark_mode'] = self::pick($input['dark_mode'] ?? '', array('auto', 'yes', 'no'), 'no');
+        $sanitized['animation'] = self::pick($input['animation'] ?? '', array('grow', 'none'), 'grow');
         $sanitized['show_voters_count'] = !empty($input['show_voters_count']);
         $sanitized['randomize_answers'] = !empty($input['randomize_answers']);
+        $sanitized['retention_days'] = max(1, min(3650, absint($input['retention_days'] ?? 30)));
+        $sanitized['delete_on_uninstall'] = !empty($input['delete_on_uninstall']);
+        $sanitized['feedback_enabled'] = !empty($input['feedback_enabled']);
+        $sanitized['feedback_style'] = self::pick($input['feedback_style'] ?? '', array('helpful', 'reactions'), 'helpful');
+        $sanitized['feedback_question'] = sanitize_text_field($input['feedback_question'] ?? '');
+        $public_types = get_post_types(array('public' => true));
+        $sanitized['feedback_post_types'] = array_values(array_intersect(
+            array_map('sanitize_key', (array) ($input['feedback_post_types'] ?? array('post'))),
+            array_keys($public_types)
+        ));
+        if (empty($sanitized['feedback_post_types'])) {
+            $sanitized['feedback_post_types'] = array('post');
+        }
 
         return $sanitized;
     }
 
     /**
-     * Render polls list page
+     * Return $value if it is allowed, otherwise $default.
      */
-    public function render_polls_page() {
-        // Check if editing
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- View routing, read-only.
-        if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['poll'])) {
-            $this->render_edit_page();
-            return;
-        }
-
-        require_once TPOLL_PLUGIN_DIR . 'admin/views/polls-list.php';
-    }
-
-    /**
-     * Render edit page
-     */
-    public function render_edit_page() {
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Poll ID for editing, read-only.
-        $poll_id = isset($_GET['poll']) ? absint($_GET['poll']) : 0;
-        $poll = $poll_id ? TPoll_Poll::get($poll_id) : new TPoll_Poll();
-
-        require_once TPOLL_PLUGIN_DIR . 'admin/views/poll-edit.php';
-    }
-
-    /**
-     * Render settings page
-     */
-    public function render_settings_page() {
-        require_once TPOLL_PLUGIN_DIR . 'admin/views/settings.php';
+    private static function pick($value, $allowed, $default) {
+        $value = sanitize_key((string) $value);
+        return in_array($value, $allowed, true) ? $value : $default;
     }
 
     /**
@@ -643,33 +674,90 @@ class TPoll_Admin {
         // Basic fields
         $poll->title = isset($_POST['title']) ? sanitize_text_field(wp_unslash($_POST['title'])) : '';
         $poll->question = isset($_POST['question']) ? sanitize_textarea_field(wp_unslash($_POST['question'])) : '';
-        $poll->type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : 'single';
-        $poll->status = isset($_POST['status']) ? sanitize_text_field(wp_unslash($_POST['status'])) : 'draft';
+        // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Whitelisted in pick().
+        $poll->type = self::pick(isset($_POST['type']) ? wp_unslash($_POST['type']) : '', array_keys(TPoll_Poll::get_types()), 'single');
+        $poll->status = self::pick(isset($_POST['status']) ? wp_unslash($_POST['status']) : '', array_keys(TPoll_Poll::get_statuses()), 'draft');
+        // phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
         // Dates
-        $poll->start_date = !empty($_POST['start_date']) ? sanitize_text_field(wp_unslash($_POST['start_date'])) : null;
-        $poll->end_date = !empty($_POST['end_date']) ? sanitize_text_field(wp_unslash($_POST['end_date'])) : null;
+        $poll->start_date = !empty($_POST['start_date']) ? self::to_mysql_date(sanitize_text_field(wp_unslash($_POST['start_date']))) : null;
+        $poll->end_date = !empty($_POST['end_date']) ? self::to_mysql_date(sanitize_text_field(wp_unslash($_POST['end_date']))) : null;
+
+        if ($poll->start_date && $poll->end_date && $poll->end_date <= $poll->start_date) {
+            wp_send_json_error(array('message' => __('The end date must be after the start date.', '3task-polls')));
+        }
 
         // Settings
+        // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Whitelisted in pick().
         $poll->settings = array(
-            'vote_restriction' => isset($_POST['vote_restriction']) ? sanitize_text_field(wp_unslash($_POST['vote_restriction'])) : 'ip',
-            'show_results' => isset($_POST['show_results']) ? sanitize_text_field(wp_unslash($_POST['show_results'])) : 'after_vote',
+            'vote_restriction' => self::pick(isset($_POST['vote_restriction']) ? wp_unslash($_POST['vote_restriction']) : '', array('ip', 'cookie', 'user'), 'ip'),
+            'show_results' => self::pick(isset($_POST['show_results']) ? wp_unslash($_POST['show_results']) : '', array('after_vote', 'always', 'never'), 'after_vote'),
             'allow_revote' => !empty($_POST['allow_revote']),
             'max_choices' => isset($_POST['max_choices']) ? absint($_POST['max_choices']) : 0,
-            'max_rating' => isset($_POST['max_rating']) ? absint($_POST['max_rating']) : 5,
+            'result_chart' => self::pick(isset($_POST['result_chart']) ? wp_unslash($_POST['result_chart']) : '', array('bars', 'donut'), 'bars'),
+            'per_post' => (bool) $poll->get_setting('per_post', false),
             'randomize_answers' => !empty($_POST['randomize_answers']),
             'show_voters_count' => !empty($_POST['show_voters_count']),
-            'theme' => isset($_POST['theme']) ? sanitize_text_field(wp_unslash($_POST['theme'])) : 'default',
-            'dark_mode' => isset($_POST['dark_mode']) ? sanitize_text_field(wp_unslash($_POST['dark_mode'])) : 'auto'
+            'theme' => self::pick(isset($_POST['theme']) ? wp_unslash($_POST['theme']) : '', array_keys(TPoll_Shortcode::themes()), 'default'),
+            'dark_mode' => self::pick(isset($_POST['dark_mode']) ? wp_unslash($_POST['dark_mode']) : '', array('auto', 'yes', 'no'), 'no')
         );
+        // phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+
+        /**
+         * Filters the poll settings before saving. Add-ons sanitize and add their own fields here.
+         *
+         * @param array      $settings Sanitized settings.
+         * @param array      $raw      Unslashed POST data (not sanitized).
+         * @param TPoll_Poll $poll     Poll being saved.
+         */
+        $poll->settings = (array) apply_filters('tpoll_save_poll_settings', $poll->settings, wp_unslash($_POST), $poll); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Passed to sanitizing filters, nonce checked above.
 
         // Styles
         $poll->styles = array(
-            'bar_color' => isset($_POST['bar_color']) ? sanitize_hex_color(wp_unslash($_POST['bar_color'])) : '#4F46E5',
-            'bar_bg' => isset($_POST['bar_bg']) ? sanitize_hex_color(wp_unslash($_POST['bar_bg'])) : '#E5E7EB',
-            'text_color' => isset($_POST['text_color']) ? sanitize_hex_color(wp_unslash($_POST['text_color'])) : '#1F2937',
-            'bg_color' => isset($_POST['bg_color']) ? sanitize_hex_color(wp_unslash($_POST['bg_color'])) : '#FFFFFF'
+            'bar_color' => isset($_POST['bar_color']) ? (string) sanitize_hex_color(wp_unslash($_POST['bar_color'])) : '',
         );
+
+        // Answers
+        $answers = array();
+        if (isset($_POST['answers']) && is_array($_POST['answers'])) {
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized in loop below.
+            $raw_answers = wp_unslash($_POST['answers']);
+            foreach ($raw_answers as $answer) {
+                if (is_array($answer) && isset($answer['text']) && trim((string) $answer['text']) !== '') {
+                    $answers[] = array(
+                        'id' => isset($answer['id']) ? absint($answer['id']) : 0,
+                        'text' => sanitize_text_field($answer['text']),
+                        'image' => isset($answer['image']) ? esc_url_raw($answer['image']) : ''
+                    );
+                }
+            }
+        }
+
+        if (TPoll_Poll::is_choice_type($poll->type) && count($answers) < 2) {
+            wp_send_json_error(array('message' => __('A poll needs at least two answers.', '3task-polls')));
+        }
+
+        /**
+         * Lets add-ons validate a poll before it is saved. Return a WP_Error to stop.
+         *
+         * @param true       $valid   True.
+         * @param TPoll_Poll $poll    Poll with the new values.
+         * @param array      $answers Sanitized answers.
+         */
+        $valid = apply_filters('tpoll_validate_poll', true, $poll, $answers);
+        if (is_wp_error($valid)) {
+            wp_send_json_error(array('message' => $valid->get_error_message()));
+        }
+
+        // Types without an answer list use one internal answer: the question itself.
+        if (!TPoll_Poll::is_choice_type($poll->type)) {
+            $existing = $poll->id ? $poll->get_answers() : array();
+            $answers = array(array(
+                'id' => !empty($existing) ? (int) $existing[0]->id : 0,
+                'text' => $poll->question,
+                'image' => ''
+            ));
+        }
 
         // Save poll
         $poll_id = $poll->save();
@@ -683,26 +771,6 @@ class TPoll_Admin {
             wp_send_json_error(array('message' => __('Error saving poll.', '3task-polls')));
         }
 
-        // Save answers
-        $answers = array();
-        if (isset($_POST['answers']) && is_array($_POST['answers'])) {
-            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized in loop below.
-            $raw_answers = wp_unslash($_POST['answers']);
-            foreach ($raw_answers as $answer) {
-                if (!empty($answer['text'])) {
-                    $answers[] = array(
-                        'text' => sanitize_text_field($answer['text']),
-                        'image' => isset($answer['image']) ? esc_url_raw($answer['image']) : ''
-                    );
-                }
-            }
-        }
-
-        // For rating/voting types, ensure at least one answer
-        if (in_array($poll->type, array('rating', 'voting')) && empty($answers)) {
-            $answers[] = array('text' => $poll->question, 'image' => '');
-        }
-
         $poll->save_answers($answers);
 
         wp_send_json_success(array(
@@ -710,6 +778,14 @@ class TPoll_Admin {
             'poll_id' => $poll_id,
             'redirect' => admin_url('admin.php?page=tpoll&tab=polls&action=edit&poll=' . $poll_id . '&saved=1')
         ));
+    }
+
+    /**
+     * Convert the datetime-local value of the editor to MySQL format (site time).
+     */
+    private static function to_mysql_date($value) {
+        $ts = strtotime($value);
+        return $ts ? gmdate('Y-m-d H:i:s', $ts) : null;
     }
 
     /**

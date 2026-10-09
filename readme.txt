@@ -1,105 +1,158 @@
-=== 3task Polls – Surveys, Quizzes & Voting ===
+=== 3task Polls: Cookieless Polls, Star Rating & Voting ===
 Contributors: 3task
-Tags: poll, voting, survey, quiz, rating
+Tags: poll, voting, star rating, cookieless, gdpr
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.3
+Stable tag: 1.0.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Create polls, surveys, quizzes and voting for WordPress. AJAX-based, GDPR-compliant, Gutenberg block included. 4 poll types and 5 themes.
+Polls, star ratings, reactions and up/down voting that stay on your own server. No third-party service, no cookie by default.
 
 == Description ==
 
-3task Polls lets you create engaging polls, surveys, quizzes and voting for your WordPress site. Built with performance and privacy in mind.
+Most voting widgets are third-party services. That means another entry in your consent banner and your visitors' answers on someone else's server. 3task Polls keeps everything in your own WordPress database.
 
-= 4 Poll Types =
+In the default mode ("one vote per IP address") no cookie is set at all. The plain IP address is never stored, only a salted SHA-256 hash that is different for every poll, so votes in different polls cannot be linked. These hashes are removed automatically after a poll has ended (30 days by default, adjustable).
 
-* **Single Choice** – Classic radio button poll
-* **Multiple Choice** – Checkbox-based, configurable max selections
-* **Star Rating** – 1-5 star rating with average display
-* **Up/Down Voting** – Thumbs up/down with live count
+= 5 poll types =
 
-= Key Features =
+* **Single choice**: one answer per voter, results as bars or donut chart
+* **Multiple choice**: checkboxes with an optional maximum
+* **Star rating**: 1 to 5 stars with average
+* **Up/down voting**: thumbs up and thumbs down, counted separately
+* **Reactions**: emoji buttons, one click votes
 
-* AJAX-based voting without page reload
-* GDPR-compliant: IP addresses are hashed before storage
-* Gutenberg block and shortcode support
-* 5 built-in themes (Default, Minimal, Rounded, Square, Pill)
-* Dark mode with auto-detect option
-* Animated result bars
-* Schedule polls with start and end dates
-* Randomize answer order
+= Feedback below posts =
+
+Ask "Was this post helpful?" or show reactions below every post, with one setting. The answers are counted per post, and the tab "Feedback" lists which posts readers found helpful.
+
+= Features =
+
+* Block "3task Polls" for the block editor, plus the shortcode `[tpoll id="123"]`
+* Works with page caching: the poll HTML is the same for everyone, the visitor's state is loaded afterwards
+* Three ways to prevent duplicate votes: per IP address (hashed, no cookie), per browser (cookie) or per user account
+* Rate limit, a hidden field against bots and a check against votes sent from other websites
+* Lightweight: the CSS and JavaScript load only on pages that show a poll
+* Results after voting, always or never (never means: only you see them in the admin)
+* Donut chart without any chart library (inline SVG)
+* Start and end date, with a notice before the poll opens
+* Voters can change their vote, if you allow it
+* 5 themes, optional dark mode, your own bar color
+* Keyboard accessible (also the stars), screen reader announcements for results
+* Personal data export and erase tools of WordPress are supported, suggested text for your privacy policy included
 * Duplicate polls with one click
-* Responsive design for all devices
-* Translation-ready with full i18n support
+* Translation-ready, German included
 
-= Shortcode Usage =
+= Shortcode =
 
 `[tpoll id="123"]`
 
-You can also customize the display per shortcode:
+Optional parameters:
 
-`[tpoll id="123" show_results="always" theme="minimal" dark_mode="yes"]`
+`[tpoll id="123" show_results="always" theme="minimal" dark_mode="no"]`
 
-= Gutenberg Block =
+= Block =
 
-Search for "3task Polls" in the block inserter and select your poll from the dropdown.
+Search for "3task Polls" in the block inserter and select your poll in the block settings.
 
 = Looking for more? =
 
-3task Polls is fully functional on its own - no locked features, no time limit, no nag screens.
-If you run a lot of polls and want to save time, there is a paid companion with bulk tools,
-scheduling and export. You can read about it on our site: https://www.3task.de/3task-polls-pro/
-
+3task Polls works on its own, with no locked features and no time limit. A paid companion is described here: https://www.3task.de/3task-polls-pro/
 
 == Installation ==
 
-1. Upload the `3task-polls` folder to `/wp-content/plugins/`
-2. Activate the plugin through the Plugins menu
-3. Go to 3task Polls in the admin menu to create your first poll
-4. Use `[tpoll id="123"]` or the Gutenberg block to display polls
+1. Upload the `3task-polls` folder to `/wp-content/plugins/` or install it from the plugin directory
+2. Activate the plugin
+3. Go to 3task Polls in the admin menu and create your first poll
+4. Add the block "3task Polls" or the shortcode `[tpoll id="123"]` to a page
 
 == Frequently Asked Questions ==
 
 = How do I embed a poll? =
 
-Use the shortcode `[tpoll id="123"]` where 123 is your poll ID. You can find the shortcode on the poll edit screen. The Gutenberg block is also available in the block inserter.
+Use the block "3task Polls" or the shortcode `[tpoll id="123"]`. The shortcode of each poll is shown in the poll list and on the edit screen.
 
-= Is 3task Polls GDPR compliant? =
+= Does 3task Polls set cookies? =
 
-Yes. IP addresses are hashed (SHA-256) before storage. No personal data is stored in plain text. No external resources are loaded.
+Only if you choose the restriction "one vote per browser (cookie)". Then a cookie named `tpoll_voted_` plus the poll number is set for one year after voting. The default mode "one vote per IP address" sets no cookie.
+
+= What does it store about voters? =
+
+The answer, the time, and a salted SHA-256 hash of the IP address and of the browser identifier. These hashes are needed to prevent duplicate votes while the poll is open and are removed after the poll has ended and the retention period has passed. If the poll is restricted to logged-in users, the vote is linked to the user account. Nothing is sent to other servers.
+
+= Is it GDPR compliant? =
+
+The plugin is built for data minimisation: no third-party service, no plain IP addresses, automatic removal of the hashes, support for the WordPress export and erase tools. Whether your site as a whole complies depends on more than one plugin, so please add the suggested text (Settings > Privacy) to your privacy policy.
 
 = Does it work with caching plugins? =
 
-Yes. 3task Polls uses AJAX for voting, so it works with all major caching plugins including WP Super Cache, W3 Total Cache, and LiteSpeed Cache.
+Yes. The poll HTML is identical for every visitor, so page caches can store it. After the page has loaded, the plugin asks the server whether this visitor has already voted and gets a fresh security token.
 
-= Can I customize the colors? =
+= Can people in the same office vote? =
 
-Yes. You can set the results bar color globally in Settings or per poll in the poll editor. The color picker supports any hex color.
+With "one vote per IP address", everybody behind the same internet connection counts as one voter. For offices and schools, use "logged-in users only" or the cookie mode.
 
-= Can I allow multiple votes? =
+= Why do multiple choice percentages add up to more than 100? =
 
-Use the "Multiple Choice" poll type and optionally set a maximum number of selections.
+For multiple choice, each percentage shows the share of voters who picked that answer. Voters can pick several answers.
 
-= How do I show results before voting? =
+= My site is behind a proxy or load balancer =
 
-In the poll settings, change "Show Results" to "Always". By default, results are shown after voting.
+The plugin only trusts REMOTE_ADDR, because headers like X-Forwarded-For can be faked by visitors. If your proxy sets a trusted header, return the real client IP with the filter `tpoll_client_ip`.
 
-= Is it translation-ready? =
+= Can I allow changing a vote? =
 
-Yes. 3task Polls uses standard WordPress i18n functions and is fully translation-ready.
+Yes, enable "Allow voters to change their vote" in the poll settings.
 
 == Screenshots ==
 
-1. A poll on the front end - readers vote without leaving the page
-2. Dashboard with an overview of every poll and its votes
-3. All polls at a glance, published and drafts side by side
+1. A poll on the front end, voting without page reload
+2. Dashboard with an overview of polls and votes
+3. All polls at a glance, with shortcode, duplicate and delete
 4. Results with vote counts and percentages per answer
-5. Settings for appearance, voting rules and privacy
+5. Settings for voting rules, privacy and appearance
 
 == Changelog ==
+
+= 1.0.7 =
+* Fix: the dashboard always showed "Create Your First Poll", also when polls already existed. It now lists the five latest polls with status and number of voters.
+
+= 1.0.6 =
+* Fix: the button "Add Answer" in the poll editor did nothing since 1.0.4 (a script dependency was missing).
+* New: poll type "Reactions" (emoji buttons, one click votes).
+* New: feedback below posts ("Was this post helpful?" or reactions), counted per post, with a "Feedback" tab in the admin.
+* New: donut chart as result view for single choice polls, without a chart library.
+* New: hidden field against bots.
+* Privacy: the IP hash is now different for every poll. Votes from before the update are still recognised.
+* Changed: the CSS and JavaScript still load only on pages that show a poll (now also mentioned in the readme).
+
+= 1.0.5 =
+* New: extension points for add-ons (poll types, extra form fields, results, admin tabs, designs). Used by 3task Polls Pro 2.0.
+* Changed: the free plugin only pauses next to the old Pro 1.0.x. Pro 2.0 and newer is an add-on and runs together with it.
+* New: answers can carry an image (used by add-on poll types).
+
+= 1.0.4 =
+* Fix: editing a poll no longer removes its votes. Answers are now updated instead of being recreated. Removing an answer that has votes asks for confirmation first.
+* Security: the IP restriction now only trusts REMOTE_ADDR (headers like X-Forwarded-For could be faked). New filter `tpoll_client_ip` for trusted proxies.
+* Security: rate limit for votes, and votes sent from other websites are rejected.
+* Fix: results are only delivered when the poll settings allow it ("never" now really means never, drafts stay private).
+* Fix: the block was missing in the block editor of WordPress 7.1. It is now registered from block.json and is called "3task Polls".
+* Fix: works with page caching. The visitor state and a fresh security token are loaded after the page.
+* Privacy: no cookie anymore in the IP and user modes. Voter hashes are removed after the poll has ended (default 30 days). Support for the WordPress personal data export and erase tools, suggested privacy policy text.
+* Fix: up/down voting counted thumbs down as thumbs up. Both are now counted and shown separately.
+* Fix: multiple choice percentages are now based on voters, single choice percentages add up to exactly 100.
+* Fix: voter count is correct for multiple choice (one ballot per vote).
+* Fix: the global settings are now used for new polls, the bar colors and the animation setting work, "allow voters to change their vote" can be set per poll.
+* Fix: polls with a start date in the future show when they open, polls for logged-in users show a login link to guests.
+* Fix: no duplicate results after voting when results are always visible.
+* Accessibility: stars are keyboard accessible, visible focus, results are announced to screen readers, stronger message colors.
+* Fix: the free plugin pauses itself while 3task Polls Pro 1.0.x is active instead of causing a fatal error.
+* Fix: "Delete data on uninstall" is now a setting, Multisite is handled, data is kept while Pro is installed.
+* Changed: dark mode default is now "light" for new installations (auto dark mode made polls dark on light themes). Font is inherited from the theme.
+* Changed: default texts are translated when shown, German translation included.
+* Removed unused code (old list table, media library loading).
 
 = 1.0.3 =
 * Performance: removed the unused jQuery UI Sortable dependency from the admin pages
@@ -119,29 +172,27 @@ Yes. 3task Polls uses standard WordPress i18n functions and is fully translation
 
 = 1.0.0 =
 * Initial release
-* 4 poll types: Single Choice, Multiple Choice, Rating, Voting
-* 5 built-in themes
-* AJAX voting
-* GDPR-compliant IP hashing
-* Gutenberg block
-* Shortcode with parameters
-* Dark mode support
-* Poll scheduling
-* Answer randomization
-* Poll duplication
-* Admin dashboard with statistics
 
 == Upgrade Notice ==
 
-= 1.0.2 =
-Text domain and plugin check compliance fixes.
+= 1.0.7 =
+The dashboard shows your latest polls instead of "Create Your First Poll".
 
-= 1.0.1 =
-Minor compatibility and checker fixes.
+= 1.0.6 =
+New: reactions, feedback below posts, donut chart, protection against bots.
+
+= 1.0.5 =
+Extension points for add-ons. Required for 3task Polls Pro 2.0.
+
+= 1.0.4 =
+Important fix: editing a running poll removed its votes. Also: block editor fix for WordPress 7.1, page cache support, no cookie in the default mode, safer duplicate vote check.
+
+= 1.0.3 =
+Small performance cleanup, tested with WordPress 7.1.
 
 = 1.0.0 =
 Initial release of 3task Polls.
 
 == About ==
 
-3task Polls is developed by [3task](https://www.3task.de), a WordPress development agency based in Germany. We build lightweight, privacy-focused plugins for the WordPress community.
+3task Polls is developed by [3task](https://www.3task.de), Frank Stemmler, Germany.

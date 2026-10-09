@@ -1,61 +1,56 @@
-# 3task Polls – Surveys, Quizzes & Voting
+# 3task Polls: Cookieless Polls, Star Rating & Voting
 
-A lightweight, AJAX-powered polling plugin for WordPress. Create beautiful polls with real-time results, Gutenberg block support, and full dark mode.
+Polls, star ratings, up/down voting and reactions for WordPress. Everything stays in your own WordPress database: no third-party service, no external fonts, no tracking.
 
 [![WordPress Plugin Version](https://img.shields.io/wordpress/plugin/v/3task-polls)](https://wordpress.org/plugins/3task-polls/)
 [![WordPress Plugin Downloads](https://img.shields.io/wordpress/plugin/dt/3task-polls)](https://wordpress.org/plugins/3task-polls/)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL_v2-blue.svg)](https://www.gnu.org/licenses/gpl-2.0)
 
+## Privacy
+
+In the default mode ("one vote per IP address") no cookie is set at all. The plain IP address is never stored, only a salted SHA-256 hash that is different for every poll, so votes in different polls cannot be linked. The hashes are removed automatically after a poll has ended (30 days by default, adjustable).
+
+## Poll types
+
+- **Single choice:** one answer per voter, results as bars or donut chart
+- **Multiple choice:** checkboxes with an optional maximum
+- **Star rating:** 1 to 5 stars with average
+- **Up/down voting:** thumbs up and thumbs down, counted separately
+- **Reactions:** emoji buttons, one click votes
+
 ## Features
 
-- AJAX voting without page reload
-- Gutenberg block + shortcode support (`[3task_poll id="1"]`)
-- Multiple answer types (single choice, multiple choice)
-- Real-time animated results with progress bars
-- Cookie + IP-based duplicate vote protection
-- Fully responsive + dark mode support
-- GDPR-friendly (no external services, no Google Fonts)
-- Lightweight (~50KB, no jQuery dependency)
+- Feedback below posts ("Was this post helpful?" or reactions), counted per post
+- Block "3task Polls" for the block editor, plus the shortcode `[tpoll id="123"]`
+- Works with page caching: the poll HTML is the same for everyone, the visitor's state is loaded afterwards
+- Three ways to prevent duplicate votes: per IP address (hashed, no cookie), per browser (cookie) or per user account
+- Rate limit, a hidden field against bots and a check against votes sent from other websites
+- CSS and JavaScript load only on pages that show a poll
+- Donut chart without any chart library (inline SVG)
+- Start and end date, 5 themes, optional dark mode, your own bar color
+- Keyboard accessible, screen reader announcements for results
+- WordPress personal data export and erase are supported
+- German included: informal (du) and formal (Sie)
 
 ## Installation
 
-1. Upload `3task-polls` to `/wp-content/plugins/`
-2. Activate the plugin in WordPress
-3. Go to **3task Polls** in your admin menu
-4. Create your first poll
+Install it from [WordPress.org](https://wordpress.org/plugins/3task-polls/), or upload the folder `3task-polls` to `/wp-content/plugins/` and activate it. Then go to **3task Polls** in the admin menu.
 
-Or install directly from [WordPress.org](https://wordpress.org/plugins/3task-polls/).
+## Changelog
 
-## Screenshots
+The full changelog is in [readme.txt](readme.txt). Latest release: **1.0.7** (9 October 2026): the dashboard lists your latest polls instead of always showing "Create Your First Poll".
 
-Create polls in seconds with the intuitive admin interface. Embed anywhere with shortcode or Gutenberg block.
+## Add-on
 
-## Pro Version
-
-**[3task Polls Pro](https://www.3task.de/3task-polls-pro/)** unlocks advanced features:
-
-- Conditional logic & branching
-- Advanced analytics & export (CSV/PDF)
-- Custom styling & branding
-- Timer & scheduled polls
-- reCAPTCHA spam protection
-- Priority support
-
-**[Upgrade to Pro](https://www.3task.de/3task-polls-pro/)**
-
-## Contributing
-
-Contributions are welcome! Please open an issue first to discuss your proposed changes.
+3task Polls works on its own, with no locked features and no time limit. A paid companion is described at [3task.de](https://www.3task.de/3task-polls-pro/).
 
 ## Support
 
 - [WordPress.org Support Forum](https://wordpress.org/support/plugin/3task-polls/)
-- [Report a Bug](https://github.com/Tribun74/3task-polls/issues)
+- [Report a bug](https://github.com/Tribun74/3task-polls/issues)
 
 ## License
 
-GPL-2.0 – see [LICENSE](LICENSE) for details.
+GPL-2.0, see [LICENSE](LICENSE).
 
----
-
-Made with care by [3task](https://www.3task.de) from Germany.
+Made by [3task](https://www.3task.de) in Germany.

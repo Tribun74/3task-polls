@@ -15,7 +15,6 @@ class TPoll_Deactivator {
      * Deactivate plugin
      */
     public static function deactivate() {
-        // Flush rewrite rules
-        flush_rewrite_rules();
+        wp_clear_scheduled_hook('tpoll_daily_cleanup');
     }
 }
