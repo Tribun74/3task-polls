@@ -1298,3 +1298,62 @@
     color: var(--tpoll-text-muted);
     white-space: nowrap;
 }
+
+/* 1.1.0: quiz question */
+.tpoll-correct-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.tpoll-correct-toggle:has(input:checked) {
+    color: #047857;
+    font-weight: 600;
+}
+
+#tpoll-quiz-explanation {
+    width: 100%;
+    min-height: 90px;
+}
+
+
+/* 1.1.0: questionnaire */
+.tpoll-survey-steps {
+    margin: 12px 0;
+    padding-left: 24px;
+}
+
+.tpoll-survey-steps li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    background: var(--tpoll-bg);
+    border: 1px solid var(--tpoll-border);
+    border-radius: var(--tpoll-radius-sm);
+}
+
+.tpoll-survey-step-title {
+    flex: 1;
+}
+
+.tpoll-survey-steps li:first-child .tpoll-survey-step-up,
+.tpoll-survey-steps li:last-child .tpoll-survey-step-down {
+    visibility: hidden;
+}
+
+.tpoll-survey-add-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.tpoll-survey-add-row select {
+    min-width: 260px;
+    max-width: 100%;
+}

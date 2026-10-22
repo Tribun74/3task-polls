@@ -44,6 +44,43 @@ var TPollAdmin = {
     initAnswerManagement: function() {
         jQuery(document).on('click', '.add-answer-btn, #tpoll-add-answer', this.addAnswer);
         jQuery(document).on('click', '.remove-answer, .tpoll-remove-answer', this.removeAnswer);
+        jQuery(document).on('click', '#tpoll-survey-add-btn', this.addSurveyStep);
+        jQuery(document).on('click', '.tpoll-survey-step-up, .tpoll-survey-step-down, .tpoll-survey-step-remove', this.moveSurveyStep);
+    },
+
+    /**
+     * Questionnaire: add the selected poll as the last question.
+     */
+    addSurveyStep: function(e) {
+        e.preventDefault();
+        var $ = jQuery;
+        var $select = $('#tpoll-survey-add');
+        var id = $select.val();
+        if (!id || $('#tpoll-survey-steps input[value="' + id + '"]').length) {
+            return;
+        }
+        var $item = $($('#tmpl-tpoll-survey-step').html().trim());
+        $item.find('input').val(id);
+        $item.find('.tpoll-survey-step-title').text($select.find('option:selected').text());
+        $('#tpoll-survey-steps').append($item);
+        $select.val('');
+    },
+
+    /**
+     * Questionnaire: move a question up or down, or remove it.
+     */
+    moveSurveyStep: function(e) {
+        e.preventDefault();
+        var $ = jQuery;
+        var $btn = $(this);
+        var $item = $btn.closest('li');
+        if ($btn.hasClass('tpoll-survey-step-remove')) {
+            $item.remove();
+        } else if ($btn.hasClass('tpoll-survey-step-up')) {
+            $item.prev().before($item);
+        } else {
+            $item.next().after($item);
+        }
     },
 
     /**
@@ -98,7 +135,10 @@ var TPollAdmin = {
 
         var tmpl = wp.template('tpoll-answer-row');
         $list.append(tmpl({ index: next, num: $rows.length + 1 }));
-        $list.find('.tpoll-answer-row').last().find('.tpoll-answer-input').trigger('focus');
+        var $row = $list.find('.tpoll-answer-row').last();
+        // The template is rendered for the type the page was loaded with.
+        $row.find('.tpoll-quiz-only').toggleClass('tpoll-hidden', $('input[name="type"]:checked').val() !== 'quiz');
+        $row.find('.tpoll-answer-input').trigger('focus');
     },
 
     /**
@@ -197,9 +237,13 @@ var TPollAdmin = {
         $('.tpoll-multiple-only').toggleClass('tpoll-hidden', type !== 'multiple');
         $('.tpoll-single-only').toggleClass('tpoll-hidden', type !== 'single');
         $('.tpoll-reactions-only').toggleClass('tpoll-hidden', type !== 'reactions');
+        $('.tpoll-quiz-only').toggleClass('tpoll-hidden', type !== 'quiz');
+        $('.tpoll-survey-only').toggleClass('tpoll-hidden', type !== 'survey');
         $('.tpoll-rating-hint').toggleClass('tpoll-hidden', isChoice);
         $('.tpoll-choice-only').toggleClass('tpoll-hidden', !isChoice);
         $('#tpoll-answers-section').toggleClass('tpoll-answers-collapsed', !isChoice);
+        // A questionnaire has no answers of its own, its questions are chosen in their own box.
+        $('#tpoll-answers-section').toggleClass('tpoll-hidden', type === 'survey');
 
         // Add-ons show or hide their own fields on this event.
         $(document).trigger('tpoll:typechange', [type]);

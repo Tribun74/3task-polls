@@ -2,8 +2,8 @@
 /**
  * Plugin Name:       3task Polls: Cookieless Polls, Star Rating & Voting
  * Plugin URI:        https://wordpress.org/plugins/3task-polls/
- * Description:       Polls, star ratings, reactions and up/down voting that stay on your own server. Feedback below posts. No third-party service, no tracking cookie, IP addresses only as salted hashes. Gutenberg block and shortcode.
- * Version:           1.0.7
+ * Description:       Polls, quiz questions, questionnaires, star ratings, reactions and up/down voting that stay on your own server. Feedback below posts. No third-party service, no tracking cookie, IP addresses only as salted hashes. Gutenberg block and shortcode.
+ * Version:           1.1.0
  * Author:            3task
  * Author URI:        https://www.3task.de
  * License:           GPL v2 or later
@@ -12,7 +12,6 @@
  * Domain Path:       /languages
  * Requires at least: 5.8
  * Requires PHP:      7.4
- * Tested up to:      7.1
  */
 
 // Prevent direct access

@@ -58,6 +58,8 @@ class TPoll_Public {
                 'alreadyVoted' => __('You have already voted.', '3task-polls'),
                 'selectAnswer' => __('Please select an answer.', '3task-polls'),
                 'clickToRate' => __('Click to rate', '3task-polls'),
+                /* translators: 1: number of the current question, 2: number of questions */
+                'questionOf' => __('Question %1$d of %2$d', '3task-polls'),
                 /* translators: %s: rating value */
                 'yourRating' => __('Your rating: %s', '3task-polls')
             )
@@ -67,7 +69,7 @@ class TPoll_Public {
     /**
      * Reject requests that a browser sent from another site.
      */
-    private function is_foreign_origin() {
+    public static function is_foreign_origin() {
         $source = '';
         if (!empty($_SERVER['HTTP_ORIGIN'])) {
             $source = esc_url_raw(wp_unslash($_SERVER['HTTP_ORIGIN']));
@@ -107,7 +109,7 @@ class TPoll_Public {
      * AJAX: Cast vote
      */
     public function ajax_vote() {
-        if (!check_ajax_referer('tpoll_vote', 'nonce', false) || $this->is_foreign_origin()) {
+        if (!check_ajax_referer('tpoll_vote', 'nonce', false) || self::is_foreign_origin()) {
             wp_send_json_error(array('message' => __('Security check failed. Please reload the page and try again.', '3task-polls')));
         }
 
@@ -155,6 +157,15 @@ class TPoll_Public {
             $data['results'] = $this->public_results($results);
             $data['html'] = TPoll_Shortcode::results_html($poll, $results, $opt['show_voters']);
         }
+
+        /**
+         * Filters the response after a successful vote.
+         *
+         * @param array      $data    Response data (message, results, html).
+         * @param TPoll_Poll $poll    Poll.
+         * @param int[]      $answers Submitted answer IDs.
+         */
+        $data = (array) apply_filters('tpoll_vote_response', $data, $poll, $answers);
 
         wp_send_json_success($data);
     }
@@ -245,7 +256,7 @@ class TPoll_Public {
         if (!$results) {
             return null;
         }
-        $keep = array('poll_id', 'poll_type', 'context', 'total_votes', 'total_voters', 'percent_base', 'answers', 'average_rating', 'up', 'down', 'net_score');
+        $keep = array('poll_id', 'poll_type', 'context', 'total_votes', 'total_voters', 'percent_base', 'answers', 'average_rating', 'up', 'down', 'net_score', 'correct_answer', 'correct_share');
         return array_intersect_key($results, array_flip($keep));
     }
 }

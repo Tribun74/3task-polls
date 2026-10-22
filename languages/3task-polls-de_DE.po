@@ -1,10 +1,15 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 3task Polls 1.0.7\n"
-"Language: de_DE\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-10-20T12:14:55+00:00\n"
+"PO-Revision-Date: 2026-10-20T12:14:55+00:00\n"
+"Language: de_DE\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Domain: 3task-polls\n"
 
@@ -18,11 +23,6 @@ msgstr "3task Polls: Umfragen ohne Cookie, Sternebewertung und Abstimmung"
 msgid "https://wordpress.org/plugins/3task-polls/"
 msgstr "https://wordpress.org/plugins/3task-polls/"
 
-#. Description of the plugin
-#: 3task-polls.php
-msgid "Polls, star ratings, reactions and up/down voting that stay on your own server. Feedback below posts. No third-party service, no tracking cookie, IP addresses only as salted hashes. Gutenberg block and shortcode."
-msgstr "Umfragen, Sternebewertungen, Reaktionen und Daumen-Abstimmungen, die auf deinem eigenen Server bleiben. Feedback unter Beiträgen. Kein Fremddienst, kein Tracking-Cookie, IP-Adressen nur als gesalzene Hashes. Block und Shortcode."
-
 #. Author of the plugin
 #: 3task-polls.php
 msgid "3task"
@@ -33,7 +33,7 @@ msgstr "3task"
 msgid "https://www.3task.de"
 msgstr "https://www.3task.de"
 
-#: 3task-polls.php:57
+#: 3task-polls.php:56
 msgid "3task Polls is paused because 3task Polls Pro is active and already contains all poll features. Your polls and votes are not affected."
 msgstr "3task Polls ist pausiert, weil 3task Polls Pro aktiv ist und alle Umfragefunktionen bereits enthält. Deine Umfragen und Stimmen bleiben erhalten."
 
@@ -54,13 +54,13 @@ msgid "Polls"
 msgstr "Umfragen"
 
 #: admin/class-admin.php:68
-#: admin/class-admin.php:254
+#: admin/class-admin.php:290
 msgid "Results"
 msgstr "Ergebnisse"
 
 #: admin/class-admin.php:72
-#: admin/class-admin.php:259
-#: includes/bootstrap.php:341
+#: admin/class-admin.php:295
+#: includes/bootstrap.php:349
 msgid "Settings"
 msgstr "Einstellungen"
 
@@ -94,184 +94,187 @@ msgstr "Entwürfe"
 msgid "Total Votes"
 msgstr "Stimmen gesamt"
 
-#: admin/class-admin.php:235
+#: admin/class-admin.php:270
 msgid "Welcome to 3task Polls"
 msgstr "Willkommen bei 3task Polls"
 
-#: admin/class-admin.php:238
+#: admin/class-admin.php:273
 msgid "Create polls, star ratings and up/down voting for your WordPress website. Use the shortcode or the block \"3task Polls\" to display polls anywhere."
 msgstr "Erstelle Umfragen, Sternebewertungen und Daumen-Abstimmungen für deine WordPress-Website. Mit dem Shortcode oder dem Block „3task Polls“ zeigst du sie an beliebiger Stelle."
 
-#: admin/class-admin.php:240
+#: admin/class-admin.php:275
 msgid "Create Your First Poll"
 msgstr "Erste Umfrage erstellen"
 
-#: admin/class-admin.php
+#: admin/class-admin.php:236
 msgid "Latest Polls"
 msgstr "Neueste Umfragen"
 
-#: admin/class-admin.php:250
+#: admin/class-admin.php:286
 msgid "New Poll"
 msgstr "Neue Umfrage"
 
-#: admin/class-admin.php:264
+#: admin/class-admin.php:300
 msgid "Help"
 msgstr "Hilfe"
 
-#: admin/class-admin.php:295
+#: admin/class-admin.php:239
+#: admin/class-admin.php:331
 msgid "All Polls"
 msgstr "Alle Umfragen"
 
-#: admin/class-admin.php:298
+#: admin/class-admin.php:261
+#: admin/class-admin.php:334
 #: admin/views/poll-edit.php:13
 msgid "Add New Poll"
 msgstr "Neue Umfrage anlegen"
 
-#: admin/class-admin.php:305
+#: admin/class-admin.php:341
 msgid "No polls yet"
 msgstr "Noch keine Umfragen"
 
-#: admin/class-admin.php:306
+#: admin/class-admin.php:342
 msgid "Create your first poll to get started!"
 msgstr "Erstelle deine erste Umfrage, um loszulegen."
 
-#: admin/class-admin.php:308
-#: admin/views/poll-edit.php:186
+#: admin/class-admin.php:344
+#: admin/views/poll-edit.php:190
 msgid "Create Poll"
 msgstr "Umfrage erstellen"
 
-#: admin/class-admin.php:329
+#: admin/class-admin.php:365
 msgid "Edit"
 msgstr "Bearbeiten"
 
-#: admin/class-admin.php:332
+#: admin/class-admin.php:368
 msgid "Duplicate"
 msgstr "Duplizieren"
 
-#: admin/class-admin.php:336
+#: admin/class-admin.php:372
 msgid "Delete"
 msgstr "Löschen"
 
-#: admin/class-admin.php:356
-#: admin/class-admin.php:769
-#: admin/class-admin.php:793
-#: admin/class-admin.php:819
-#: includes/class-vote.php:30
-#: public/class-public.php:171
+#: admin/class-admin.php:392
+#: admin/class-admin.php:813
+#: admin/class-admin.php:837
+#: admin/class-admin.php:863
+#: includes/class-vote.php:31
+#: public/class-public.php:182
 msgid "Poll not found."
 msgstr "Umfrage nicht gefunden."
 
-#: admin/class-admin.php:390
+#: admin/class-admin.php:426
 msgid "Poll Results"
 msgstr "Ergebnisse der Umfragen"
 
-#: admin/class-admin.php:397
+#: admin/class-admin.php:433
 msgid "No results yet"
 msgstr "Noch keine Ergebnisse"
 
-#: admin/class-admin.php:398
+#: admin/class-admin.php:434
 msgid "Create and publish a poll to start collecting votes."
 msgstr "Erstelle und veröffentliche eine Umfrage, um Stimmen zu sammeln."
 
 #. translators: %s: average rating
-#: admin/class-admin.php:420
+#: admin/class-admin.php:456
 #, php-format
 msgid "Average rating: %s / 5"
 msgstr "Durchschnitt: %s von 5"
 
 #. translators: 1: thumbs up, 2: thumbs down
-#: admin/class-admin.php:425
+#: admin/class-admin.php:461
 #, php-format
 msgid "Thumbs up: %1$d, thumbs down: %2$d"
 msgstr "Daumen hoch: %1$d, Daumen runter: %2$d"
 
 #. translators: %s: average value
-#: admin/class-admin.php:431
+#: admin/class-admin.php:467
 #, php-format
 msgid "Average: %s"
 msgstr "Durchschnitt: %s"
 
 #. translators: 1: number of votes, 2: percentage
-#: admin/class-admin.php:444
+#: admin/class-admin.php:480
 #, php-format
 msgid "%1$d votes (%2$s%%)"
 msgstr "%1$d Stimmen (%2$s %%)"
 
-#: admin/class-admin.php:458
+#: admin/class-admin.php:494
 msgid "Multiple choice: percentages are shares of voters, so they can add up to more than 100."
 msgstr "Mehrfachauswahl: Die Prozente beziehen sich auf die Teilnehmer und können zusammen mehr als 100 ergeben."
 
 #. translators: %d: total number of voters
-#: admin/class-admin.php:466
+#: admin/class-admin.php:502
 #, php-format
 msgid "Total voters: %d"
 msgstr "Teilnehmer gesamt: %d"
 
-#: admin/class-admin.php:546
+#: admin/class-admin.php:582
 msgid "Are you sure you want to delete this poll? This cannot be undone."
 msgstr "Willst du diese Umfrage wirklich löschen? Das lässt sich nicht rückgängig machen."
 
-#: admin/class-admin.php:547
+#: admin/class-admin.php:583
 msgid "Are you sure you want to reset all votes for this poll?"
 msgstr "Willst du wirklich alle Stimmen dieser Umfrage zurücksetzen?"
 
-#: admin/class-admin.php:548
-#: admin/class-admin.php:741
+#: admin/class-admin.php:584
+#: admin/class-admin.php:785
 #: admin/views/poll-edit.php:25
 msgid "Poll saved successfully!"
 msgstr "Umfrage gespeichert."
 
-#: admin/class-admin.php:549
+#: admin/class-admin.php:585
 #: public/class-public.php:56
 msgid "An error occurred. Please try again."
 msgstr "Es ist ein Fehler aufgetreten. Bitte versuche es noch einmal."
 
-#: admin/class-admin.php:550
-#: admin/views/poll-edit.php:124
+#: admin/class-admin.php:586
+#: admin/views/poll-edit.php:128
 msgid "Add Answer"
 msgstr "Antwort hinzufügen"
 
-#: admin/class-admin.php:551
-#: admin/views/poll-edit.php:111
-#: admin/views/poll-edit.php:360
+#: admin/class-admin.php:587
+#: admin/views/poll-edit.php:115
+#: admin/views/poll-edit.php:368
+#: includes/class-survey.php:166
 msgid "Remove"
 msgstr "Entfernen"
 
-#: admin/class-admin.php:552
-#: admin/class-admin.php:701
+#: admin/class-admin.php:588
+#: admin/class-admin.php:737
 msgid "A poll needs at least two answers."
 msgstr "Eine Umfrage braucht mindestens zwei Antworten."
 
 #. translators: %d: number of votes
-#: admin/class-admin.php:555
+#: admin/class-admin.php:591
 #, php-format
 msgid "This answer has %d votes. If you remove it and save, these votes are deleted. Continue?"
 msgstr "Diese Antwort hat %d Stimmen. Wenn du sie entfernst und speicherst, werden diese Stimmen gelöscht. Fortfahren?"
 
-#: admin/class-admin.php:628
-#: admin/class-admin.php:762
-#: admin/class-admin.php:786
-#: admin/class-admin.php:812
+#: admin/class-admin.php:664
+#: admin/class-admin.php:806
+#: admin/class-admin.php:830
+#: admin/class-admin.php:856
 msgid "Permission denied."
 msgstr "Keine Berechtigung."
 
-#: admin/class-admin.php:651
+#: admin/class-admin.php:687
 msgid "The end date must be after the start date."
 msgstr "Das Enddatum muss nach dem Startdatum liegen."
 
-#: admin/class-admin.php:735
+#: admin/class-admin.php:771
 msgid "Error saving poll."
 msgstr "Die Umfrage konnte nicht gespeichert werden."
 
-#: admin/class-admin.php:775
+#: admin/class-admin.php:819
 msgid "Poll deleted successfully!"
 msgstr "Umfrage gelöscht."
 
-#: admin/class-admin.php:799
+#: admin/class-admin.php:843
 msgid "Poll duplicated successfully!"
 msgstr "Umfrage dupliziert."
 
-#: admin/class-admin.php:837
+#: admin/class-admin.php:881
 msgid "Votes reset successfully!"
 msgstr "Stimmen zurückgesetzt."
 
@@ -310,183 +313,183 @@ msgstr "Antworten"
 msgid "Answer %d"
 msgstr "Antwort %d"
 
-#: admin/views/poll-edit.php:119
+#: admin/views/poll-edit.php:123
 msgid "Use the five usual reactions"
 msgstr "Die fünf üblichen Reaktionen einsetzen"
 
-#: admin/views/poll-edit.php:121
+#: admin/views/poll-edit.php:125
 msgid "Each answer is one reaction, usually a single emoji. Visitors click a reaction to vote."
 msgstr "Jede Antwort ist eine Reaktion, meist ein einzelnes Emoji. Ein Klick auf die Reaktion gibt die Stimme ab."
 
-#: admin/views/poll-edit.php:128
+#: admin/views/poll-edit.php:132
 msgid "Rating and Voting polls use the question as the item to rate/vote on."
 msgstr "Bei Sternebewertung und Daumen-Abstimmung wird die Frage selbst bewertet, Antworten braucht es nicht."
 
-#: admin/views/poll-edit.php:148
+#: admin/views/poll-edit.php:152
 msgid "Publish"
 msgstr "Veröffentlichen"
 
-#: admin/views/poll-edit.php:151
+#: admin/views/poll-edit.php:155
 msgid "Status"
 msgstr "Status"
 
-#: admin/views/poll-edit.php:163
+#: admin/views/poll-edit.php:167
 msgid "Shortcode"
 msgstr "Shortcode"
 
 #. translators: %d: number of total votes
-#: admin/views/poll-edit.php:170
+#: admin/views/poll-edit.php:174
 #, php-format
 msgid "Total Votes: %d"
 msgstr "Stimmen gesamt: %d"
 
 #. translators: %d: number of total voters
-#: admin/views/poll-edit.php:174
+#: admin/views/poll-edit.php:178
 #, php-format
 msgid "Total Voters: %d"
 msgstr "Teilnehmer gesamt: %d"
 
-#: admin/views/poll-edit.php:182
+#: admin/views/poll-edit.php:186
 msgid "Reset Votes"
 msgstr "Stimmen zurücksetzen"
 
-#: admin/views/poll-edit.php:186
+#: admin/views/poll-edit.php:190
 msgid "Update Poll"
 msgstr "Umfrage aktualisieren"
 
-#: admin/views/poll-edit.php:194
+#: admin/views/poll-edit.php:198
 msgid "Schedule"
 msgstr "Zeitplan"
 
-#: admin/views/poll-edit.php:197
+#: admin/views/poll-edit.php:201
 msgid "Start Date"
 msgstr "Startdatum"
 
-#: admin/views/poll-edit.php:205
+#: admin/views/poll-edit.php:209
 msgid "End Date"
 msgstr "Enddatum"
 
-#: admin/views/poll-edit.php:213
+#: admin/views/poll-edit.php:217
 msgid "Leave empty for no time restriction. Before the start date the poll shows when it opens, after the end date it is closed."
 msgstr "Leer lassen für keine zeitliche Begrenzung. Vor dem Start zeigt die Umfrage, wann sie öffnet, nach dem Ende ist sie geschlossen."
 
-#: admin/views/poll-edit.php:220
+#: admin/views/poll-edit.php:224
 #: blocks/poll-block/index.js:35
 msgid "Poll Settings"
 msgstr "Einstellungen der Umfrage"
 
-#: admin/views/poll-edit.php:223
+#: admin/views/poll-edit.php:227
 msgid "Vote Restriction"
 msgstr "Mehrfachstimmen verhindern"
 
-#: admin/views/poll-edit.php:226
+#: admin/views/poll-edit.php:230
 #: admin/views/settings.php:45
 msgid "One vote per IP address (hashed, no cookie)"
 msgstr "Eine Stimme je IP-Adresse (gehasht, kein Cookie)"
 
-#: admin/views/poll-edit.php:229
+#: admin/views/poll-edit.php:233
 #: admin/views/settings.php:48
 msgid "One vote per browser (cookie, easy to bypass)"
 msgstr "Eine Stimme je Browser (Cookie, leicht zu umgehen)"
 
-#: admin/views/poll-edit.php:232
+#: admin/views/poll-edit.php:236
 #: admin/views/settings.php:51
 msgid "Logged-in users only, one vote per account"
 msgstr "Nur angemeldete Benutzer, eine Stimme je Konto"
 
-#: admin/views/poll-edit.php:235
+#: admin/views/poll-edit.php:239
 msgid "IP: people sharing one network (office, school) can vote only once together."
 msgstr "IP: Wer sich einen Internetanschluss teilt (Büro, Schule), kann nur gemeinsam einmal abstimmen."
 
-#: admin/views/poll-edit.php:238
+#: admin/views/poll-edit.php:242
 msgid "Show Results"
 msgstr "Ergebnisse zeigen"
 
-#: admin/views/poll-edit.php:241
+#: admin/views/poll-edit.php:245
 #: admin/views/settings.php:66
 msgid "After Voting"
 msgstr "Nach der Abstimmung"
 
-#: admin/views/poll-edit.php:244
+#: admin/views/poll-edit.php:248
 msgid "Always"
 msgstr "Immer"
 
-#: admin/views/poll-edit.php:247
+#: admin/views/poll-edit.php:251
 msgid "Never"
 msgstr "Nie"
 
-#: admin/views/poll-edit.php:254
+#: admin/views/poll-edit.php:258
 msgid "Allow voters to change their vote"
 msgstr "Stimme ändern erlauben"
 
-#: admin/views/poll-edit.php:260
+#: admin/views/poll-edit.php:264
 #: admin/views/settings.php:93
 msgid "Show total voters count"
 msgstr "Zahl der Teilnehmer anzeigen"
 
-#: admin/views/poll-edit.php:266
+#: admin/views/poll-edit.php:270
 msgid "Randomize answer order"
 msgstr "Antworten in zufälliger Reihenfolge"
 
-#: admin/views/poll-edit.php:270
+#: admin/views/poll-edit.php:274
 msgid "Show results as"
 msgstr "Ergebnis zeigen als"
 
-#: admin/views/poll-edit.php:272
+#: admin/views/poll-edit.php:276
 msgid "Bars"
 msgstr "Balken"
 
-#: admin/views/poll-edit.php:273
+#: admin/views/poll-edit.php:277
 msgid "Donut chart"
 msgstr "Tortendiagramm"
 
-#: admin/views/poll-edit.php:277
+#: admin/views/poll-edit.php:281
 msgid "Max Choices"
 msgstr "Höchstens wählbar"
 
-#: admin/views/poll-edit.php:284
+#: admin/views/poll-edit.php:288
 msgid "0 = unlimited"
 msgstr "0 = unbegrenzt"
 
-#: admin/views/poll-edit.php:300
+#: admin/views/poll-edit.php:304
 msgid "Appearance"
 msgstr "Darstellung"
 
-#: admin/views/poll-edit.php:303
+#: admin/views/poll-edit.php:307
 msgid "Theme"
 msgstr "Design"
 
-#: admin/views/poll-edit.php:313
+#: admin/views/poll-edit.php:317
 #: admin/views/settings.php:227
 msgid "Dark Mode"
 msgstr "Dunkelmodus"
 
-#: admin/views/poll-edit.php:316
+#: admin/views/poll-edit.php:320
 #: admin/views/settings.php:232
 msgid "Auto (follow system)"
 msgstr "Automatisch (wie das System)"
 
-#: admin/views/poll-edit.php:319
+#: admin/views/poll-edit.php:323
 #: admin/views/settings.php:235
 msgid "Always Dark"
 msgstr "Immer dunkel"
 
-#: admin/views/poll-edit.php:322
+#: admin/views/poll-edit.php:326
 #: admin/views/settings.php:238
 msgid "Always Light"
 msgstr "Immer hell"
 
-#: admin/views/poll-edit.php:327
+#: admin/views/poll-edit.php:331
 msgid "Bar Color"
 msgstr "Balkenfarbe"
 
-#: admin/views/poll-edit.php:334
+#: admin/views/poll-edit.php:338
 msgid "Empty = color from the global settings."
 msgstr "Leer = Farbe aus den allgemeinen Einstellungen."
 
 #. translators: %s: answer number placeholder
-#: admin/views/poll-edit.php:351
-#: admin/views/poll-edit.php:358
+#: admin/views/poll-edit.php:355
+#: admin/views/poll-edit.php:362
 #, php-format
 msgid "Answer %s"
 msgstr "Antwort %s"
@@ -650,8 +653,8 @@ msgstr "Hinweis „bereits abgestimmt“"
 
 #: admin/views/settings.php:318
 #: includes/class-shortcode.php:46
-#: includes/class-vote.php:72
-#: includes/class-vote.php:207
+#: includes/class-vote.php:73
+#: includes/class-vote.php:208
 #: public/class-public.php:58
 msgid "You have already voted."
 msgstr "Du hast bereits abgestimmt."
@@ -685,40 +688,40 @@ msgstr "Häufige Fragen"
 msgid "Rate this Plugin"
 msgstr "Plugin bewerten"
 
-#: includes/bootstrap.php:136
-#: includes/bootstrap.php:147
+#: includes/bootstrap.php:144
+#: includes/bootstrap.php:155
 msgid "3task Polls votes"
 msgstr "3task Polls: Stimmen"
 
-#: includes/bootstrap.php:177
+#: includes/bootstrap.php:185
 msgid "Poll votes"
 msgstr "Stimmen in Umfragen"
 
-#: includes/bootstrap.php:180
+#: includes/bootstrap.php:188
 msgid "Poll"
 msgstr "Umfrage"
 
-#: includes/bootstrap.php:181
+#: includes/bootstrap.php:189
 msgid "Answer"
 msgstr "Antwort"
 
-#: includes/bootstrap.php:182
+#: includes/bootstrap.php:190
 msgid "Value"
 msgstr "Wert"
 
-#: includes/bootstrap.php:183
+#: includes/bootstrap.php:191
 msgid "Date"
 msgstr "Datum"
 
-#: includes/bootstrap.php:225
+#: includes/bootstrap.php:233
 msgid "When you vote in a poll, this site stores your answer, the time and a salted SHA-256 hash of your IP address and browser identifier to prevent duplicate votes. The plain IP address is not stored. If you are logged in, the vote is linked to your user account. If the poll uses the cookie restriction, a cookie named tpoll_voted_ followed by the poll number is set for one year. The hashes are removed automatically after the poll has ended and the retention period set by the site owner has passed. No data is sent to third parties."
 msgstr "Wenn du an einer Umfrage teilnimmst, speichert diese Website deine Antwort, den Zeitpunkt und einen gesalzenen SHA-256-Hash deiner IP-Adresse und deiner Browserkennung, um doppelte Stimmen zu verhindern. Die IP-Adresse selbst wird nicht gespeichert. Bist du angemeldet, wird die Stimme mit deinem Benutzerkonto verknüpft. Nutzt die Umfrage die Cookie-Sperre, wird für ein Jahr ein Cookie namens tpoll_voted_ mit der Nummer der Umfrage gesetzt. Die Hashes werden automatisch gelöscht, wenn die Umfrage beendet ist und die vom Betreiber festgelegte Frist abgelaufen ist. Es werden keine Daten an Dritte übermittelt."
 
-#: includes/bootstrap.php:256
+#: includes/bootstrap.php:264
 msgid "-- Select Poll --"
 msgstr "Umfrage auswählen"
 
-#: includes/bootstrap.php:281
+#: includes/bootstrap.php:289
 msgid "Please select a poll."
 msgstr "Bitte wähle eine Umfrage aus."
 
@@ -823,61 +826,64 @@ msgid "Pill"
 msgstr "Pille"
 
 #. translators: %s: date and time the poll opens
-#: includes/class-shortcode.php:235
+#: includes/class-shortcode.php:245
 #, php-format
 msgid "This poll opens on %s"
 msgstr "Öffnet am %s"
 
-#: includes/class-shortcode.php:239
+#: includes/class-shortcode.php:249
 msgid "This poll is not open yet."
 msgstr "Diese Umfrage ist noch nicht geöffnet."
 
-#: includes/class-shortcode.php:247
-#: includes/class-vote.php:41
-#: includes/class-vote.php:305
+#: includes/class-shortcode.php:257
+#: includes/class-survey.php:475
+#: includes/class-vote.php:42
+#: includes/class-vote.php:306
 msgid "Please log in to vote."
 msgstr "Bitte melde dich an, um abzustimmen."
 
-#: includes/class-shortcode.php:248
+#: includes/class-shortcode.php:258
 msgid "Log in"
 msgstr "Anmelden"
 
-#: includes/class-shortcode.php:252
+#: includes/class-shortcode.php:262
 msgid "Please enable JavaScript to vote."
 msgstr "Bitte aktiviere JavaScript, um abzustimmen."
 
-#: includes/class-shortcode.php:296
+#: includes/class-shortcode.php:306
 msgid "Leave this field empty"
 msgstr "Dieses Feld bitte leer lassen"
 
 #. translators: %d: maximum number of choices allowed
-#: includes/class-shortcode.php:398
+#: includes/class-shortcode.php:417
+#: includes/class-survey.php:236
 #, php-format
 msgid "Select up to %d options"
 msgstr "Wähle bis zu %d Antworten"
 
 #. translators: 1: star value, 2: maximum stars
-#: includes/class-shortcode.php:432
+#: includes/class-shortcode.php:451
+#: includes/class-survey.php:217
 #, php-format
 msgid "Rate %1$d of %2$d stars"
 msgstr "%1$d von %2$d Sternen vergeben"
 
-#: includes/class-shortcode.php:440
+#: includes/class-shortcode.php:459
 #: public/class-public.php:60
 msgid "Click to rate"
 msgstr "Zum Bewerten klicken"
 
-#: includes/class-shortcode.php:465
+#: includes/class-shortcode.php:484
 msgid "Thumbs up"
 msgstr "Daumen hoch"
 
-#: includes/class-shortcode.php:471
+#: includes/class-shortcode.php:490
 msgid "Thumbs down"
 msgstr "Daumen runter"
 
 #. translators: %d: number of votes
-#: includes/class-shortcode.php:526
-#: includes/class-shortcode.php:617
+#: includes/class-shortcode.php:545
+#: includes/class-shortcode.php:636
 #, php-format
 msgid "%d vote"
 msgid_plural "%d votes"
@@ -885,103 +891,110 @@ msgstr[0] "%d Stimme"
 msgstr[1] "%d Stimmen"
 
 #. translators: %d: number of thumbs up
-#: includes/class-shortcode.php:567
+#: includes/class-shortcode.php:586
 #, php-format
 msgid "Thumbs up: %d"
 msgstr "Daumen hoch: %d"
 
 #. translators: %d: number of thumbs down
-#: includes/class-shortcode.php:573
+#: includes/class-shortcode.php:592
 #, php-format
 msgid "Thumbs down: %d"
 msgstr "Daumen runter: %d"
 
 #. translators: 1: reaction, 2: number of votes
-#: includes/class-shortcode.php:585
+#: includes/class-shortcode.php:604
 #, php-format
 msgid "%1$s: %2$d"
 msgstr "%1$s: %2$d"
 
 #. translators: 1: average rating, 2: number of ratings
-#: includes/class-shortcode.php:597
+#: includes/class-shortcode.php:616
 #, php-format
 msgid "Average rating: %1$s / 5 (%2$d rating)"
 msgid_plural "Average rating: %1$s / 5 (%2$d ratings)"
 msgstr[0] "Durchschnitt: %1$s von 5 (%2$d Bewertung)"
 msgstr[1] "Durchschnitt: %1$s von 5 (%2$d Bewertungen)"
 
-#: includes/class-shortcode.php:625
+#: includes/class-shortcode.php:644
 msgid "Percentages show the share of voters who picked each answer. Voters could pick more than one."
 msgstr "Die Prozente zeigen, welcher Anteil der Teilnehmer eine Antwort gewählt hat. Mehrere Antworten waren möglich."
 
 #. translators: %d: number of voters
-#: includes/class-shortcode.php:634
+#: admin/class-admin.php:254
+#: includes/class-quiz.php:303
+#: includes/class-shortcode.php:653
 #, php-format
 msgid "%d voter"
 msgid_plural "%d voters"
 msgstr[0] "%d Teilnehmer"
 msgstr[1] "%d Teilnehmer"
 
-#: includes/class-vote.php:35
+#: includes/class-survey.php:472
+#: includes/class-vote.php:36
 msgid "This poll is not active."
 msgstr "Diese Umfrage ist nicht aktiv."
 
-#: includes/class-vote.php:64
+#: includes/class-vote.php:65
 msgid "Too many votes from your network. Please try again later."
 msgstr "Zu viele Stimmen aus deinem Netzwerk. Bitte versuche es später noch einmal."
 
-#: includes/class-vote.php:83
+#: includes/class-vote.php:84
 msgid "Please select a valid answer."
 msgstr "Bitte wähle eine gültige Antwort."
 
 #. translators: %d: maximum number of selections allowed
-#: includes/class-vote.php:117
+#: includes/class-vote.php:118
 #, php-format
 msgid "You can select a maximum of %d answers."
 msgstr "Du kannst höchstens %d Antworten wählen."
 
-#: includes/class-vote.php:139
+#: includes/class-vote.php:140
 msgid "One or more selected answers are invalid."
 msgstr "Mindestens eine gewählte Antwort ist ungültig."
 
-#: includes/class-vote.php:159
+#: includes/class-vote.php:160
 msgid "Error updating your existing vote."
 msgstr "Deine bisherige Stimme konnte nicht geändert werden."
 
-#: includes/class-vote.php:189
-#: includes/class-vote.php:199
+#: includes/class-vote.php:190
+#: includes/class-vote.php:200
 msgid "Error recording vote."
 msgstr "Die Stimme konnte nicht gespeichert werden."
 
 #: public/class-public.php:57
-#: public/class-public.php:151
+#: public/class-public.php:153
 msgid "Thank you for voting!"
 msgstr "Danke für deine Stimme!"
 
 #: public/class-public.php:59
-#: public/class-public.php:132
+#: public/class-public.php:134
 msgid "Please select an answer."
 msgstr "Bitte wähle eine Antwort."
 
 #. translators: %s: rating value
-#: public/class-public.php:62
+#: public/class-public.php:64
 #, php-format
 msgid "Your rating: %s"
 msgstr "Deine Bewertung: %s"
 
-#: public/class-public.php:111
+#: includes/class-survey.php:461
+#: public/class-public.php:113
 msgid "Security check failed. Please reload the page and try again."
 msgstr "Die Sicherheitsprüfung ist fehlgeschlagen. Bitte lade die Seite neu und versuche es noch einmal."
 
-#: public/class-public.php:116
+#: includes/class-survey.php:464
+#: public/class-public.php:118
 msgid "Your vote could not be counted."
 msgstr "Deine Stimme konnte nicht gezählt werden."
 
-#: public/class-public.php:124
+#: includes/class-survey.php:373
+#: includes/class-survey.php:469
+#: public/class-public.php:126
 msgid "Invalid poll."
 msgstr "Ungültige Umfrage."
 
-#: public/class-public.php:178
+#: public/class-public.php:189
 msgid "Results are not available."
 msgstr "Die Ergebnisse sind nicht verfügbar."
 
@@ -1028,3 +1041,160 @@ msgstr "bewertung"
 msgctxt "block keyword"
 msgid "umfrage"
 msgstr "umfrage"
+
+#: admin/views/poll-edit.php:113
+#: admin/views/poll-edit.php:366
+msgid "Correct"
+msgstr "Richtig"
+
+#: includes/class-quiz.php:55
+#: includes/class-quiz.php:167
+msgid "Quiz question"
+msgstr "Wissensfrage"
+
+#: includes/class-quiz.php:169
+msgid "Mark the correct answer in the list above. After the vote, visitors see whether they were right, the correct answer, the explanation and how many answered correctly. Before the vote, none of this is in the page."
+msgstr "Markiere oben die richtige Antwort. Nach der Stimme sehen Besucher, ob sie richtig lagen, die richtige Antwort, die Erklärung und wie viele richtig geantwortet haben. Vor der Stimme steht nichts davon in der Seite."
+
+#: includes/class-quiz.php:171
+msgid "Explanation"
+msgstr "Erklärung"
+
+#: includes/class-quiz.php:173
+msgid "Optional. Shown after the vote. Links, bold and italic are allowed."
+msgstr "Optional. Erscheint nach der Stimme. Links, fett und kursiv sind erlaubt."
+
+#: includes/class-quiz.php:210
+msgid "Please mark the correct answer."
+msgstr "Bitte markiere die richtige Antwort."
+
+#. translators: %s: share of correct answers, for example "75.0 %"
+#: includes/class-quiz.php:276
+#, php-format
+msgid "%s answered correctly."
+msgstr "%s haben richtig geantwortet."
+
+#: includes/class-quiz.php:286
+msgid "Correct answer"
+msgstr "Richtige Antwort"
+
+#: includes/class-quiz.php:327
+msgid "Correct!"
+msgstr "Richtig!"
+
+#: includes/class-quiz.php:327
+msgid "Not quite."
+msgstr "Leider falsch."
+
+#: includes/class-quiz.php:156
+msgctxt "quiz button"
+msgid "Answer"
+msgstr "Antworten"
+
+#: includes/class-survey.php:56
+msgid "Questionnaire"
+msgstr "Fragebogen"
+
+#: includes/class-survey.php:77
+msgctxt "questionnaire button"
+msgid "Send"
+msgstr "Absenden"
+
+#: includes/class-survey.php:117
+msgid "Questions of the questionnaire"
+msgstr "Fragen des Fragebogens"
+
+#: includes/class-survey.php:119
+msgid "Visitors answer the questions one after the other and send all answers together at the end. Possible are published polls of the types single choice, multiple choice, quiz question and star rating. The question field above is shown as the introduction."
+msgstr "Besucher beantworten die Fragen nacheinander und senden alle Antworten am Ende gemeinsam ab. Möglich sind veröffentlichte Umfragen der Typen Einfachauswahl, Mehrfachauswahl, Wissensfrage und Bewertung (Sterne). Das Feld „Frage“ oben erscheint als Einleitung."
+
+#: includes/class-survey.php:126
+msgid "Add question"
+msgstr "Frage hinzufügen"
+
+#: includes/class-survey.php:128
+msgid "Select a poll"
+msgstr "Umfrage auswählen"
+
+#: includes/class-survey.php:133
+msgid "Add"
+msgstr "Hinzufügen"
+
+#: includes/class-survey.php:136
+msgid "There is no published poll of a suitable type yet. Create and publish the questions first."
+msgstr "Es gibt noch keine veröffentlichte Umfrage passenden Typs. Lege die Fragen zuerst an und veröffentliche sie."
+
+#. translators: %d: number of submitted questionnaires
+#: includes/class-survey.php:142
+#, php-format
+msgid "%d participation"
+msgid_plural "%d participations"
+msgstr[0] "%d Teilnahme"
+msgstr[1] "%d Teilnahmen"
+
+#: includes/class-survey.php:164
+msgid "Move up"
+msgstr "Nach oben"
+
+#: includes/class-survey.php:165
+msgid "Move down"
+msgstr "Nach unten"
+
+#. translators: 1: number of the current question, 2: number of questions
+#: includes/class-survey.php:185
+#: public/class-public.php:62
+#, php-format
+msgid "Question %1$d of %2$d"
+msgstr "Frage %1$d von %2$d"
+
+#: includes/class-survey.php:194
+msgid "Back"
+msgstr "Zurück"
+
+#: includes/class-survey.php:195
+msgid "Next"
+msgstr "Weiter"
+
+#: includes/class-survey.php:302
+msgid "A questionnaire needs at least two questions."
+msgstr "Ein Fragebogen braucht mindestens zwei Fragen."
+
+#: includes/class-survey.php:307
+msgid "A selected question no longer exists."
+msgstr "Eine ausgewählte Frage gibt es nicht mehr."
+
+#. translators: %s: title of the poll
+#: includes/class-survey.php:311
+#, php-format
+msgid "The question \"%s\" cannot be part of a questionnaire."
+msgstr "Die Frage „%s“ kann nicht Teil eines Fragebogens sein."
+
+#. translators: %s: title of the poll
+#: includes/class-survey.php:315
+#, php-format
+msgid "The question \"%s\" is not published yet."
+msgstr "Die Frage „%s“ ist noch nicht veröffentlicht."
+
+#. translators: 1: number of correct answers, 2: number of quiz questions
+#: includes/class-survey.php:436
+#, php-format
+msgid "%1$d of %2$d correct."
+msgstr "%1$d von %2$d richtig."
+
+#: includes/class-survey.php:478
+msgid "You have already taken part."
+msgstr "Du hast bereits teilgenommen."
+
+#: includes/class-survey.php:489
+#: includes/class-survey.php:495
+msgid "Please answer all questions."
+msgstr "Bitte beantworte alle Fragen."
+
+#: includes/class-survey.php:528
+msgid "Thank you for taking part!"
+msgstr "Danke für deine Teilnahme!"
+
+#. Description of the plugin
+#: 3task-polls.php
+msgid "Polls, quiz questions, questionnaires, star ratings, reactions and up/down voting that stay on your own server. Feedback below posts. No third-party service, no tracking cookie, IP addresses only as salted hashes. Gutenberg block and shortcode."
+msgstr "Umfragen, Wissensfragen, Fragebögen, Sternebewertungen, Reaktionen und Daumen-Abstimmungen, die auf deinem eigenen Server bleiben. Feedback unter Beiträgen. Kein Fremddienst, kein Tracking-Cookie, IP-Adressen nur als gesalzene Hashes. Block und Shortcode."

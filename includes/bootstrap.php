@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 if ( ! defined( 'TPOLL_VERSION' ) ) {
-	define( 'TPOLL_VERSION', '1.0.7' );
+	define( 'TPOLL_VERSION', '1.1.0' );
 }
 define('TPOLL_PLUGIN_DIR', plugin_dir_path(TPOLL_PLUGIN_FILE));
 define('TPOLL_PLUGIN_URL', plugin_dir_url(TPOLL_PLUGIN_FILE));
@@ -67,6 +67,8 @@ final class TPoll {
         require_once TPOLL_PLUGIN_DIR . 'includes/class-vote.php';
         require_once TPOLL_PLUGIN_DIR . 'includes/class-shortcode.php';
         require_once TPOLL_PLUGIN_DIR . 'includes/class-feedback.php';
+        require_once TPOLL_PLUGIN_DIR . 'includes/class-quiz.php';
+        require_once TPOLL_PLUGIN_DIR . 'includes/class-survey.php';
 
         // Admin classes
         if (is_admin()) {
@@ -94,6 +96,12 @@ final class TPoll {
 
         // Feedback below posts
         TPoll_Feedback::init();
+
+        // Quiz question type
+        TPoll_Quiz::init();
+
+        // Questionnaire type
+        TPoll_Survey::init();
 
         // Bundled German translation, used until translate.wordpress.org provides one.
         add_action('init', array($this, 'load_textdomain'), 1);

@@ -45,6 +45,9 @@
                 case 'reactions':
                     initReactionsPoll(poll);
                     break;
+                case 'survey':
+                    initSurveyPoll(poll);
+                    break;
                 case 'single':
                 case 'multiple':
                     initChoicePoll(poll);
@@ -202,6 +205,117 @@
     }
 
     /**
+     * Questionnaire: one step at a time, all answers are sent together at the end.
+     */
+    function initSurveyPoll(poll) {
+        const form = poll.querySelector('.tpoll-form');
+        if (!form) return;
+
+        const steps = Array.prototype.slice.call(form.querySelectorAll('.tpoll-survey-step'));
+        const back = form.querySelector('.tpoll-survey-back');
+        const next = form.querySelector('.tpoll-survey-next');
+        const submit = form.querySelector('.tpoll-submit');
+        const progress = form.querySelector('.tpoll-survey-progress');
+        let current = 0;
+
+        poll.classList.add('tpoll-survey-js');
+
+        function answered(step) {
+            return !!step.querySelector('input:checked');
+        }
+
+        function show(index, focus) {
+            current = index;
+            steps.forEach(function(step, i) {
+                step.classList.toggle('is-current', i === index);
+            });
+            back.hidden = index === 0;
+            next.hidden = index === steps.length - 1;
+            submit.hidden = index !== steps.length - 1;
+            if (progress) {
+                progress.textContent = tpollData.strings.questionOf.replace('%1$d', index + 1).replace('%2$d', steps.length);
+            }
+            const message = form.querySelector('.tpoll-message');
+            if (message) {
+                message.className = 'tpoll-message tpoll-hidden';
+            }
+            if (focus) {
+                const first = steps[index].querySelector('input');
+                if (first) first.focus();
+            }
+        }
+
+        back.addEventListener('click', function() {
+            if (current > 0) show(current - 1, true);
+        });
+
+        next.addEventListener('click', function() {
+            if (!answered(steps[current])) {
+                showMessage(form, tpollData.strings.selectAnswer, 'error');
+                return;
+            }
+            show(current + 1, true);
+        });
+
+        // Maximum number of choices per multiple choice step.
+        form.querySelectorAll('.tpoll-multiple[data-max-choices]').forEach(function(group) {
+            const max = parseInt(group.dataset.maxChoices, 10) || 0;
+            const boxes = group.querySelectorAll('input[type="checkbox"]');
+            boxes.forEach(function(box) {
+                box.addEventListener('change', function() {
+                    const full = group.querySelectorAll('input:checked').length >= max;
+                    boxes.forEach(function(other) {
+                        other.disabled = full && !other.checked;
+                    });
+                });
+            });
+        });
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const missing = steps.findIndex(function(step) { return !answered(step); });
+            if (missing !== -1) {
+                show(missing, true);
+                showMessage(form, tpollData.strings.selectAnswer, 'error');
+                return;
+            }
+
+            const data = new FormData();
+            data.append('action', 'tpoll_survey_submit');
+            data.append('nonce', poll.dataset.nonce || form.dataset.nonce);
+            data.append('poll_id', poll.dataset.pollId);
+            const hp = form.querySelector('input[name="tpoll_hp"]');
+            data.append('tpoll_hp', hp ? hp.value : '');
+            form.querySelectorAll('input[name^="steps["]:checked').forEach(function(input) {
+                data.append(input.name, input.value);
+            });
+
+            setBusy(poll, true);
+            fetch(tpollData.ajaxUrl, { method: 'POST', body: data, credentials: 'same-origin' })
+                .then(function(response) { return response.json(); })
+                .then(function(response) {
+                    const payload = response && response.data ? response.data : {};
+                    if (response && response.success) {
+                        markVoted(poll, payload.message || tpollData.strings.voted);
+                        if (payload.html) {
+                            updateResults(poll, payload.html);
+                        }
+                        poll.dispatchEvent(new CustomEvent('tpoll:voted', { bubbles: true, detail: { poll: poll, data: payload } }));
+                        return;
+                    }
+                    showMessage(form, payload.message || tpollData.strings.error, 'error');
+                    setBusy(poll, false);
+                })
+                .catch(function() {
+                    showMessage(form, tpollData.strings.error, 'error');
+                    setBusy(poll, false);
+                });
+        });
+
+        show(0, false);
+    }
+
+    /**
      * Initialize rating poll
      */
     function initRatingPoll(poll) {
@@ -256,7 +370,7 @@
      * Enable or disable all vote controls of a poll.
      */
     function setBusy(poll, busy) {
-        poll.querySelectorAll('.tpoll-submit, .tpoll-star, .tpoll-vote-btn, .tpoll-reaction[data-answer]').forEach(function(el) {
+        poll.querySelectorAll('.tpoll-submit, .tpoll-star, .tpoll-vote-btn, .tpoll-reaction[data-answer], .tpoll-survey-back').forEach(function(el) {
             el.disabled = busy;
             el.classList.toggle('tpoll-loading', busy && el.classList.contains('tpoll-submit'));
         });
@@ -310,6 +424,10 @@
 
             if (response && response.success) {
                 markVoted(poll, payload.message || tpollData.strings.voted);
+                // Quiz questions: right or wrong, for the colour of the note.
+                if (payload.verdict) {
+                    poll.classList.add('tpoll-verdict-' + payload.verdict);
+                }
                 poll.dispatchEvent(new CustomEvent('tpoll:voted', { bubbles: true, detail: { poll: poll, data: payload } }));
 
                 if (payload.html) {

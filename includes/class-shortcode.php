@@ -123,12 +123,22 @@ class TPoll_Shortcode {
      */
     public static function results_visible($poll, $show_results, $has_voted) {
         if ($show_results === 'never') {
-            return false;
+            $visible = false;
+        } elseif ($show_results === 'always' || $poll->is_closed()) {
+            $visible = true;
+        } else {
+            $visible = (bool) $has_voted;
         }
-        if ($show_results === 'always' || $poll->is_closed()) {
-            return true;
-        }
-        return $has_voted;
+
+        /**
+         * Filters whether the results may be shown to the current visitor.
+         *
+         * @param bool       $visible      Result of the poll setting.
+         * @param TPoll_Poll $poll         Poll.
+         * @param string     $show_results after_vote, always or never.
+         * @param bool       $has_voted    Visitor has voted.
+         */
+        return (bool) apply_filters('tpoll_results_visible', $visible, $poll, $show_results, (bool) $has_voted);
     }
 
     /**
@@ -309,6 +319,7 @@ class TPoll_Shortcode {
 
             switch ($poll->type) {
                 case 'single':
+                case 'quiz':
                     $this->render_single_choice($poll, $answers, $question_id);
                     break;
                 case 'multiple':
@@ -353,7 +364,15 @@ class TPoll_Shortcode {
 
             <?php if (in_array($poll->type, $submit_types, true)) : ?>
                 <button type="submit" class="tpoll-submit">
-                    <?php echo esc_html(self::text('button_text')); ?>
+                    <?php
+                    /**
+                     * Filters the text of the vote button.
+                     *
+                     * @param string     $text Text from the settings or the default.
+                     * @param TPoll_Poll $poll Poll.
+                     */
+                    echo esc_html((string) apply_filters('tpoll_submit_button_text', self::text('button_text'), $poll));
+                    ?>
                 </button>
             <?php endif; ?>
 

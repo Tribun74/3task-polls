@@ -773,6 +773,14 @@ class TPoll_Admin {
 
         $poll->save_answers($answers);
 
+        /**
+         * Fires after a poll and its answers were saved, when the answers have their IDs.
+         *
+         * @param TPoll_Poll $poll Saved poll.
+         * @param array      $raw  Unslashed POST data (not sanitized).
+         */
+        do_action('tpoll_poll_saved', $poll, wp_unslash($_POST)); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Passed to sanitizing callbacks, nonce checked above.
+
         wp_send_json_success(array(
             'message' => __('Poll saved successfully!', '3task-polls'),
             'poll_id' => $poll_id,

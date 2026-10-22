@@ -79,7 +79,7 @@ $tpoll_page_title = $tpoll_is_new ? __('Add New Poll', '3task-polls') : __('Edit
                     $tpoll_is_choice = TPoll_Poll::is_choice_type($poll->type);
                     $tpoll_vote_counts = $poll->id ? $poll->get_answer_vote_counts() : array();
                     ?>
-                    <div class="tpoll-answers-wrap postbox<?php echo $tpoll_is_choice ? '' : ' tpoll-answers-collapsed'; ?>" id="tpoll-answers-section">
+                    <div class="tpoll-answers-wrap postbox<?php echo $tpoll_is_choice ? '' : ' tpoll-answers-collapsed'; ?><?php echo $poll->type === 'survey' ? ' tpoll-hidden' : ''; ?>" id="tpoll-answers-section">
                         <h2 class="hndle"><?php esc_html_e('Poll Answers', '3task-polls'); ?></h2>
                         <div class="inside">
                             <div id="tpoll-answers-list" class="tpoll-answers-list">
@@ -108,6 +108,10 @@ $tpoll_page_title = $tpoll_is_new ? __('Add New Poll', '3task-polls') : __('Edit
                                                <?php /* translators: %d: answer number */ ?>
                                                placeholder="<?php printf(esc_attr__('Answer %d', '3task-polls'), absint($tpoll_index + 1)); ?>"
                                                class="tpoll-answer-input">
+                                        <label class="tpoll-correct-toggle tpoll-quiz-only<?php echo $poll->type === 'quiz' ? '' : ' tpoll-hidden'; ?>">
+                                            <input type="radio" name="quiz_correct" value="<?php echo esc_attr($tpoll_index); ?>" <?php checked(!empty($tpoll_answer->id) && (int) $tpoll_answer->id === (int) $poll->get_setting('quiz_correct', 0)); ?>>
+                                            <?php esc_html_e('Correct', '3task-polls'); ?>
+                                        </label>
                                         <button type="button" class="tpoll-remove-answer button-link-delete" title="<?php esc_attr_e('Remove', '3task-polls'); ?>">
                                             <span class="dashicons dashicons-trash"></span>
                                         </button>
@@ -164,6 +168,7 @@ $tpoll_page_title = $tpoll_is_new ? __('Add New Poll', '3task-polls') : __('Edit
                                     <code class="tpoll-shortcode-display">[tpoll id="<?php echo esc_attr($poll->id); ?>"]</code>
                                 </div>
 
+                                <?php if ($poll->type !== 'survey') : // A questionnaire has no votes of its own, its box shows the participations. ?>
                                 <div class="tpoll-stats-wrap">
                                     <span><?php
                                         /* translators: %d: number of total votes */
@@ -174,10 +179,11 @@ $tpoll_page_title = $tpoll_is_new ? __('Add New Poll', '3task-polls') : __('Edit
                                         printf(esc_html__('Total Voters: %d', '3task-polls'), absint($poll->get_total_voters()));
                                     ?></span>
                                 </div>
+                                <?php endif; ?>
                             <?php endif; ?>
 
                             <div class="tpoll-publish-actions">
-                                <?php if ($poll->id && current_user_can('manage_tpoll')) : ?>
+                                <?php if ($poll->id && $poll->type !== 'survey' && current_user_can('manage_tpoll')) : ?>
                                     <a href="#" class="tpoll-reset-votes submitdelete" data-poll-id="<?php echo esc_attr($poll->id); ?>">
                                         <?php esc_html_e('Reset Votes', '3task-polls'); ?>
                                     </a>
@@ -357,6 +363,10 @@ $tpoll_page_title = $tpoll_is_new ? __('Add New Poll', '3task-polls') : __('Edit
                <?php /* translators: %s: answer number placeholder */ ?>
                placeholder="<?php printf(esc_attr__('Answer %s', '3task-polls'), '{{data.num}}'); ?>"
                class="tpoll-answer-input">
+        <label class="tpoll-correct-toggle tpoll-quiz-only<?php echo $poll->type === 'quiz' ? '' : ' tpoll-hidden'; ?>">
+            <input type="radio" name="quiz_correct" value="{{data.index}}">
+            <?php esc_html_e('Correct', '3task-polls'); ?>
+        </label>
         <button type="button" class="tpoll-remove-answer button-link-delete" title="<?php esc_attr_e('Remove', '3task-polls'); ?>">
             <span class="dashicons dashicons-trash"></span>
         </button>

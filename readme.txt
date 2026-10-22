@@ -1,14 +1,14 @@
 === 3task Polls: Cookieless Polls, Star Rating & Voting ===
 Contributors: 3task
-Tags: poll, voting, star rating, cookieless, gdpr
+Tags: poll, quiz, voting, star rating, cookieless
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.7
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Polls, star ratings, reactions and up/down voting that stay on your own server. No third-party service, no cookie by default.
+Polls, quizzes, questionnaires, star ratings and voting that stay on your own server. No third-party service, no cookie by default.
 
 == Description ==
 
@@ -16,13 +16,15 @@ Most voting widgets are third-party services. That means another entry in your c
 
 In the default mode ("one vote per IP address") no cookie is set at all. The plain IP address is never stored, only a salted SHA-256 hash that is different for every poll, so votes in different polls cannot be linked. These hashes are removed automatically after a poll has ended (30 days by default, adjustable).
 
-= 5 poll types =
+= 7 poll types =
 
 * **Single choice**: one answer per voter, results as bars or donut chart
 * **Multiple choice**: checkboxes with an optional maximum
 * **Star rating**: 1 to 5 stars with average
 * **Up/down voting**: thumbs up and thumbs down, counted separately
 * **Reactions**: emoji buttons, one click votes
+* **Quiz question**: one correct answer and an optional explanation. After the vote, visitors see whether they were right and how many answered correctly
+* **Questionnaire**: several polls in one form, answered step by step and sent together at the end. With quiz questions inside, visitors see how many they got right (for example "4 of 5 correct")
 
 = Feedback below posts =
 
@@ -102,6 +104,14 @@ For multiple choice, each percentage shows the share of voters who picked that a
 
 The plugin only trusts REMOTE_ADDR, because headers like X-Forwarded-For can be faked by visitors. If your proxy sets a trusted header, return the real client IP with the filter `tpoll_client_ip`.
 
+= How does the quiz question work? =
+
+Choose the type "Quiz question", mark the correct answer and add an explanation if you like. Before the vote, the page contains neither the solution nor the explanation, so it cannot be read from the source code and the page can be cached. After the vote, visitors see whether they were right, the correct answer, the explanation and the share of correct answers. This happens whatever is set under "Show Results".
+
+= How does the questionnaire work? =
+
+Create and publish the single questions first (single choice, multiple choice, quiz question or star rating). Then create a poll of the type "Questionnaire" and add the questions in the order you want. Visitors answer one question after the other and send all answers together at the end. If they stop in the middle, nothing is counted. Each question keeps its own results, and all answers of one visitor share one ID, so add-ons can evaluate them per participant.
+
 = Can I allow changing a vote? =
 
 Yes, enable "Allow voters to change their vote" in the poll settings.
@@ -115,6 +125,13 @@ Yes, enable "Allow voters to change their vote" in the poll settings.
 5. Settings for voting rules, privacy and appearance
 
 == Changelog ==
+
+= 1.1.0 =
+* New: poll type "Questionnaire". Bundles published polls into one form, step by step with progress, all answers are sent together at the end. With quiz questions inside, visitors see how many they got right, the solutions and the explanations.
+* New: poll type "Quiz question". Mark the correct answer, add an optional explanation (links, bold, italic). After the vote, visitors see whether they were right, the correct answer, the explanation and how many answered correctly. Before the vote, none of this is in the page.
+* New: extension points `tpoll_poll_saved`, `tpoll_results_visible`, `tpoll_vote_response`, `tpoll_submit_button_text`, `tpoll_has_voted` and `tpoll_survey_step_types` for add-ons. `TPoll_Vote::cast()` accepts a shared ballot ID.
+* Fix: when two identical votes arrived at the same moment, removing the second one now only touches that poll.
+* Changed: "Tested up to" is only in the readme now.
 
 = 1.0.7 =
 * Fix: the dashboard always showed "Create Your First Poll", also when polls already existed. It now lists the five latest polls with status and number of voters.
@@ -174,6 +191,9 @@ Yes, enable "Allow voters to change their vote" in the poll settings.
 * Initial release
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+New poll types: quiz question with correct answer and explanation, and questionnaires with several questions.
 
 = 1.0.7 =
 The dashboard shows your latest polls instead of "Create Your First Poll".

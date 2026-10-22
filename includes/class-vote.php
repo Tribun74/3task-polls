@@ -18,8 +18,9 @@ class TPoll_Vote {
      * @param int|int[] $answer_ids Answer ID(s).
      * @param int       $value      Value (stars, thumbs, slider).
      * @param int       $context    Post ID when the same poll is counted per post (feedback), else 0.
+     * @param string    $ballot     ID shared by several polls sent together (questionnaire), empty for a new one.
      */
-    public static function cast($poll_id, $answer_ids, $value = 1, $context = 0) {
+    public static function cast($poll_id, $answer_ids, $value = 1, $context = 0, $ballot = '') {
         global $wpdb;
 
         $context = absint($context);
@@ -161,7 +162,7 @@ class TPoll_Vote {
         }
 
         // One ballot per submission: counts voters correctly for multiple choice.
-        $ballot = wp_generate_password(32, false, false);
+        $ballot = preg_match('/^[A-Za-z0-9-]{1,32}$/', (string) $ballot) ? (string) $ballot : wp_generate_password(32, false, false);
 
         foreach ($answer_ids as $answer_id) {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table.
@@ -203,7 +204,7 @@ class TPoll_Vote {
         // Two parallel requests can both pass has_voted(). The older ballot wins, the newer one is removed.
         if (!$allow_revote && self::lost_race($poll_id, $restriction, $user_id, $ballot, $context)) {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table.
-            $wpdb->delete($votes_table, array('ballot' => $ballot), array('%s'));
+            $wpdb->delete($votes_table, array('ballot' => $ballot, 'poll_id' => $poll_id), array('%s', '%d'));
             return new WP_Error('already_voted', __('You have already voted.', '3task-polls'));
         }
 
@@ -286,7 +287,7 @@ class TPoll_Vote {
         $votes_table = $wpdb->prefix . 'tpoll_votes';
 
         // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom table, $where is prepared in voter_condition().
-        $own_min = (int) $wpdb->get_var($wpdb->prepare("SELECT MIN(id) FROM $votes_table WHERE ballot = %s", $ballot));
+        $own_min = (int) $wpdb->get_var($wpdb->prepare("SELECT MIN(id) FROM $votes_table WHERE ballot = %s AND poll_id = %d", $ballot, $poll_id));
         $older = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $votes_table WHERE $where AND ballot <> %s AND id < %d", $ballot, $own_min));
         // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
@@ -336,16 +337,37 @@ class TPoll_Vote {
         $restriction = $poll->get_setting('vote_restriction', 'ip');
 
         if ($restriction === 'cookie') {
-            return self::has_voted_cookie($poll_id, absint($context));
+            $voted = self::has_voted_cookie($poll_id, absint($context));
+        } else {
+            $where = self::voter_condition($poll_id, $restriction, get_current_user_id(), absint($context));
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom table, $where is prepared in voter_condition().
+            $voted = null === $where ? false : (bool) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}tpoll_votes WHERE $where");
         }
 
-        $where = self::voter_condition($poll_id, $restriction, get_current_user_id(), absint($context));
-        if (null === $where) {
-            return false;
-        }
+        /**
+         * Filters whether the current visitor has voted, for types without votes of their own.
+         *
+         * @param bool       $voted   Result for this poll.
+         * @param TPoll_Poll $poll    Poll.
+         * @param int        $context Context (post ID or 0).
+         */
+        return (bool) apply_filters('tpoll_has_voted', $voted, $poll, absint($context));
+    }
 
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom table, $where is prepared in voter_condition().
-        return (bool) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}tpoll_votes WHERE $where");
+    /**
+     * Remove all votes of one submission, for example when a later step of a questionnaire fails.
+     *
+     * @param string $ballot Ballot ID.
+     * @return int Number of removed rows.
+     */
+    public static function delete_ballot($ballot) {
+        global $wpdb;
+
+        if ((string) $ballot === '') {
+            return 0;
+        }
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table.
+        return (int) $wpdb->delete($wpdb->prefix . 'tpoll_votes', array('ballot' => (string) $ballot), array('%s'));
     }
 
     /**

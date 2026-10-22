@@ -17,6 +17,8 @@ In the default mode ("one vote per IP address") no cookie is set at all. The pla
 - **Star rating:** 1 to 5 stars with average
 - **Up/down voting:** thumbs up and thumbs down, counted separately
 - **Reactions:** emoji buttons, one click votes
+- **Quiz question:** one correct answer and an optional explanation. After the vote, visitors see whether they were right and how many answered correctly
+- **Questionnaire:** several polls in one form, answered step by step and sent together at the end. With quiz questions inside, visitors see how many they got right (for example "4 of 5 correct")
 
 ## Features
 
@@ -38,7 +40,7 @@ Install it from [WordPress.org](https://wordpress.org/plugins/3task-polls/), or 
 
 ## Changelog
 
-The full changelog is in [readme.txt](readme.txt). Latest release: **1.0.7** (9 October 2026): the dashboard lists your latest polls instead of always showing "Create Your First Poll".
+The full changelog is in [readme.txt](readme.txt). Latest release: **1.1.0** (22 October 2026): two new poll types, quiz question with correct answer and explanation, and questionnaires with several questions.
 
 ## Add-on
 
